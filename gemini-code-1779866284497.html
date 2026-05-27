@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Wells Pharmacy | صيدليات د. ويلز</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-black: #050505;
+            --card-black: #121212;
+            --gold-primary: #D4AF37;
+            --gold-light: #F3E5AB;
+            --gold-gradient: linear-gradient(135deg, #D4AF37 0%, #AA7C11 100%);
+            --text-white: #ffffff;
+            --text-gray: #888888;
+            --border-color: #222222;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--text-white);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--bg-black);
+            position: relative;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.08);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* شريط علوي احترافي (Header) */
+        header {
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-logo .logo-text {
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .header-logo .logo-text span {
+            color: var(--gold-primary);
+        }
+        .header-logo .logo-sub {
+            font-size: 10px;
+            color: var(--text-gray);
+            letter-spacing: 1px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 18px;
+            color: var(--text-white);
+            font-size: 18px;
+        }
+        .header-icons i {
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .header-icons i:hover { color: var(--gold-primary); }
+        .cart-icon { position: relative; color: var(--gold-primary); }
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #ff3333;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 50%;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+            scrollbar-width: none;
+        }
+
+        /* شريط التوصيل المجاني */
+        .shipping-banner {
+            background: var(--gold-gradient);
+            color: #000;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        /* سلايدر العروض الكبيرة */
+        .hero-slider {
+            padding: 15px;
+        }
+        .slider-image {
+            width: 100%;
+            height: 160px;
+            border-radius: 12px;
+            background: #1a1a1a url('https://images.unsplash.com/photo-1629363447936-a532d84784a9?auto=format&fit=crop&q=80&w=600') center/cover;
+            position: relative;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .slider-image::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);
+            border-radius: 12px;
+        }
+        .slider-content {
+            position: relative;
+            z-index: 2;
+        }
+        .slider-content h2 {
+            color: var(--gold-primary);
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        .slider-content p {
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            background: #444;
+            border-radius: 50%;
+        }
+        .dot.active { background: var(--gold-primary); }
+
+        /* الأزرار الدائرية الثلاثة (Quick Actions) */
+        .quick-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 10px;
+            margin: 10px 15px;
+            background: var(--card-black);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+        }
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .action-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            background: #000;
+            border: 2px solid #333;
+            color: var(--gold-light);
+            transition: all 0.3s;
+            position: relative;
+        }
+        .action-item:hover .action-circle {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        .action-text {
+            font-size: 12px;
+            color: var(--text-white);
+            font-weight: 500;
+        }
+        /* نقطة تمييز لزر النقاط */
+        .points-badge {
+            position: absolute;
+            bottom: -5px;
+            background: var(--gold-gradient);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* العناوين الفاصلة */
+        .section-header {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 15px 15px;
+        }
+        .section-header::before, .section-header::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-header h3 {
+            padding: 0 15px;
+            color: var(--gold-primary);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* عروض خاصة (Grid) */
+        .special-offers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 15px;
+        }
+        .offer-card {
+            background: var(--card-black);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        .offer-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            opacity: 0.8;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .discount-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--gold-gradient);
+            color: #000;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .offer-details {
+            padding: 10px;
+            text-align: center;
+        }
+        .offer-details h4 {
+            font-size: 12px;
+            color: var(--text-white);
+        }
+
+        /* شريط التنقل السفلي الخماسي */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background-color: rgba(18, 18, 18, 0.98);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-gray);
+            font-size: 10px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .nav-item i {
+            font-size: 20px;
+            transition: 0.3s;
+        }
+        .nav-item.active {
+            color: var(--gold-primary);
+        }
+        .nav-item.active i {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- شريط علوي (Header) -->
+    <header>
+        <div class="header-icons">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <i class="fa-solid fa-barcode"></i>
+            <div class="cart-icon">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="cart-badge">2</span>
+            </div>
+        </div>
+        <div class="header-logo">
+            <div style="text-align: right;">
+                <div class="logo-text">Dr. <span>Wells</span></div>
+                <div class="logo-sub">PHARMACY</div>
+            </div>
+            <i class="fa-solid fa-shield-heart" style="font-size: 28px; color: var(--gold-primary);"></i>
+        </div>
+    </header>
+
+    <div class="main-content">
+        
+        <!-- شريط الشحن -->
+        <div class="shipping-banner">
+            توصيل مجاني طوال شهر التأسيس!
+        </div>
+
+        <!-- السلايدر الرئيسي -->
+        <div class="hero-slider">
+            <div class="slider-image">
+                <div class="slider-content">
+                    <h2>خصم 1+1</h2>
+                    <p>على منتجات العناية المختارة</p>
+                </div>
+            </div>
+            <div class="slider-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <!-- الأزرار الثلاثة الرئيسية -->
+        <div class="quick-actions">
+            <div class="action-item">
+                <div class="action-circle">
+                    <i class="fa-solid fa-file-prescription"></i>
+                </div>
+                <span class="action-text">الروشتة الإلكترونية</span>
+            </div>
+            
+            <div class="action-item">
+                <div class="action-circle" style="border-color: var(--gold-primary);">
+                    <i class="fa-solid fa-gift"></i>
+                    <div class="points-badge">0</div>
+                </div>
+                <span class="action-text">النقاط</span>
+            </div>
+
+            <div class="action-item">
+                <div class="action-circle">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <span class="action-text">مجلة العروض</span>
+            </div>
+        </div>
+
+        <!-- عروض خاصة -->
+        <div class="section-header">
+            <h3>عروض خاصة</h3>
+        </div>
+        
+        <div class="special-offers">
+            <div class="offer-card">
+                <div class="discount-badge">خصم 50%</div>
+                <!-- صورة توضيحية فاخرة -->
+                <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&q=80" alt="عرض 1">
+                <div class="offer-details">
+                    <h4>مجموعة العناية الفاخرة</h4>
+                </div>
+            </div>
+            <div class="offer-card">
+                <div class="discount-badge">خصم 20%</div>
+                <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&q=80" alt="عرض 2">
+                <div class="offer-details">
+                    <h4>أصناف مختارة للتجميل</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- أفضل العروض -->
+        <div class="section-header">
+            <h3>أفضل العروض</h3>
+        </div>
+        
+        <div class="special-offers" style="margin-bottom: 20px;">
+            <div class="offer-card">
+                <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&q=80" alt="عرض 3">
+                <div class="offer-details">
+                    <h4 style="color: var(--gold-primary);">عروض الأدوية</h4>
+                </div>
+            </div>
+            <div class="offer-card">
+                <img src="https://images.unsplash.com/photo-1616671211537-7a570743c539?w=300&q=80" alt="عرض 4">
+                <div class="offer-details">
+                    <h4 style="color: var(--gold-primary);">المكملات الغذائية</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- شريط التنقل السفلي الخماسي -->
+    <nav class="bottom-nav">
+        <div class="nav-item">
+            <i class="fa-regular fa-user"></i>
+            <span>الملف الشخصي</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-award"></i>
+            <span>النقاط</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>الروشتة</span>
+        </div>
+        <div class="nav-item">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>التصنيفات</span>
+        </div>
+        <div class="nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span>الرئيسية</span>
+        </div>
+    </nav>
+
+</div>
+
+</body>
+</html>
