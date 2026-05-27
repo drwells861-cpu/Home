@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dr. Wells Pharmacy | صيدليات د. ويلز</title>
+    <!-- مكتبة الأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #e9ecef;
+            --bg-app: #f8f9fa;
+            --card-white: #ffffff;
+            --gold-primary: #D4AF37;
+            --gold-gradient: linear-gradient(135deg, #D4AF37 0%, #AA7C11 100%);
+            --text-dark: #1a1a1a;
+            --text-gray: #6c757d;
+            --border-light: #eaedf1;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --danger: #dc3545;
+            --success: #28a745;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); display: flex; justify-content: center; min-height: 100vh; }
+        
+        .app-container {
+            width: 100%; max-width: 480px; background-color: var(--bg-app); position: relative;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.1); overflow-x: hidden; display: flex; flex-direction: column; height: 100vh;
+        }
+
+        /* الهيدر وشريط البحث */
+        header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px; border-bottom: 1px solid var(--border-light); z-index: 100; display: flex; flex-direction: column; gap: 10px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand img { width: 40px; height: 40px; object-fit: contain; }
+        .brand h1 { font-size: 20px; font-weight: 900; color: var(--text-dark); line-height: 1; }
+        .brand h1 span { color: var(--gold-primary); }
+        .search-bar { position: relative; width: 100%; }
+        .search-bar input { width: 100%; padding: 10px 40px 10px 15px; border: 1px solid var(--border-light); border-radius: 20px; background: var(--bg-app); outline: none; }
+        .search-bar i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--gold-primary); }
+
+        /* منطقة المحتوى والصفحات */
+        .main-content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .view { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* الكروت والشبكات */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .product-card { background: var(--card-white); border-radius: 12px; padding: 10px; box-shadow: var(--shadow-sm); text-align: center; position: relative; }
+        .product-card img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; }
+        .product-card h4 { font-size: 13px; color: var(--text-dark); margin-bottom: 5px; height: 38px; overflow: hidden; }
+        .product-card .price { color: var(--gold-primary); font-weight: bold; font-size: 15px; }
+        .add-to-cart-btn { background: var(--gold-gradient); border: none; padding: 8px; width: 100%; border-radius: 8px; color: #fff; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        
+        /* عناصر السلة */
+        .cart-item { display: flex; align-items: center; background: var(--card-white); padding: 10px; border-radius: 10px; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+        .cart-item img { width: 60px; height: 60px; object-fit: contain; margin-left: 10px; }
+        .cart-item-details { flex: 1; }
+        .cart-qty-ctrl { display: flex; align-items: center; gap: 10px; }
+        .cart-qty-ctrl button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold-primary); background: #fff; color: var(--gold-primary); font-weight: bold; cursor: pointer; }
+        .del-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 18px; margin-right: 10px; }
+        
+        /* النماذج والإدخال */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-dark); font-weight: bold; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 14px; background: var(--card-white); }
+        .btn-main { background: var(--gold-gradient); color: #fff; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        
+        /* شريط التنقل السفلي */
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: 70px; background: rgba(255, 255, 255, 0.98); display: flex; justify-content: space-between; align-items: center; padding: 0 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: var(--text-gray); font-size: 11px; cursor: pointer; transition: 0.3s; }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+        .nav-item.active { color: var(--gold-primary); transform: translateY(-2px); }
+        .badge { position: relative; }
+        .badge::after { content: attr(data-count); position: absolute; top: -5px; right: -8px; background: var(--danger); color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; }
+
+        /* المودال (النوافذ المنبثقة) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--card-white); padding: 20px; border-radius: 15px; width: 90%; max-width: 400px; position: relative; }
+        .close-modal { position: absolute; top: 15px; left: 15px; cursor: pointer; font-size: 20px; color: var(--text-gray); }
+
+        .section-title { font-size: 16px; font-weight: bold; margin: 20px 0 15px; color: var(--text-dark); border-right: 3px solid var(--gold-primary); padding-right: 8px; }
+        .file-upload-wrapper { border: 2px dashed var(--gold-primary); padding: 30px; text-align: center; border-radius: 10px; cursor: pointer; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- الهيدر -->
+    <header>
+        <div class="header-top">
+            <div class="brand">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOub4lqSzoSaYf-PPzzwR0Xi_b9K2-KrfYRDjE3jgoGudFNiVf-BuFD6IaQfPw4cFrqYe-CFmET1aQmHmKeZH9oV1d6cIYjZRgd27ZEYxMdtxu7LmhusnHwNuE-YUDaaWiCLk-benb6zWcCUj2H5LgG=w2499-h2612-s-no-gm?authuser=0" alt="Logo">
+                <h1>Dr. <span>Wells</span></h1>
+            </div>
+            <div class="nav-item badge" data-count="0" id="header-cart-btn" onclick="navigate('cart')">
+                <i class="fa-solid fa-cart-shopping" style="font-size: 22px; color: var(--text-dark);"></i>
+            </div>
+        </div>
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="بحث متقدم عن الأدوية والمستحضرات..." oninput="handleSearch()">
+        </div>
+    </header>
+
+    <div class="main-content">
+        
+        <!-- 1. الرئيسية ونتائج البحث -->
+        <div id="home-view" class="view active">
+            <!-- مجلة العروض -->
+            <div id="search-results"></div>
+            
+            <div id="default-home-content">
+                <div class="section-title">مجلة العروض (أفضل المبيعات)</div>
+                <div class="grid-2" id="home-products">
+                    <p style="text-align:center; grid-column:1/-1;">جاري تحميل المنتجات...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. التصنيفات -->
+        <div id="categories-view" class="view">
+            <div class="section-title">التصنيفات والفئات</div>
+            <div class="grid-2" id="categories-grid">
+                <!-- سيتم توليدها برمجياً -->
+            </div>
+        </div>
+
+        <!-- 3. الروشتة الإلكترونية -->
+        <div id="prescription-view" class="view">
+            <div class="section-title">إرسال الروشتة أو التعاقد</div>
+            <div class="card" style="background: white; padding: 15px; border-radius: 12px; box-shadow: var(--shadow-sm);">
+                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 15px;">يمكنك تصوير الروشتة بكاميرا الهاتف أو اختيار صور من الألبوم (يمكن اختيار أكثر من صورة).</p>
+                
+                <input type="file" id="rx-upload" accept="image/*" capture="environment" multiple style="display: none;">
+                <div class="file-upload-wrapper" onclick="document.getElementById('rx-upload').click()">
+                    <i class="fa-solid fa-camera" style="font-size: 30px; color: var(--gold-primary); margin-bottom: 10px;"></i>
+                    <p>اضغط هنا لالتقاط أو رفع صور الروشتة</p>
+                </div>
+                <div id="rx-preview" style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px;"></div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="is-insurance" style="width: 18px; height: 18px;" onchange="toggleInsuranceDocs()">
+                    <label style="margin: 0;">تابعة لجهة تعاقد / تأمين طبي؟</label>
+                </div>
+
+                <div id="insurance-docs" style="display: none;">
+                    <label style="font-size: 12px; color: var(--text-gray);">برجاء إرفاق صورة الكارنيه أو موافقة التأمين:</label>
+                    <input type="file" id="insurance-upload" accept="image/*" multiple class="form-control" style="margin-top: 5px; margin-bottom: 15px;">
+                </div>
+
+                <button class="btn-main" onclick="submitPrescription()">إرسال الطلب للصيدلي</button>
+            </div>
+        </div>
+
+        <!-- 4. سلة المشتريات -->
+        <div id="cart-view" class="view">
+            <div class="section-title">سلة المشتريات</div>
+            <div id="cart-items-container"></div>
+            
+            <div style="background: white; padding: 15px; border-radius: 12px; margin-top: 15px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-bottom: 15px;">
+                    <span>الإجمالي:</span>
+                    <span id="cart-total" style="color: var(--gold-primary);">0 ج.م</span>
+                </div>
+                <button class="btn-main" onclick="initiateCheckout()">إتمام الطلب الآن</button>
+            </div>
+
+            <div class="section-title">مقترحات قد تهمك (الأكثر مبيعاً)</div>
+            <div class="grid-2" id="cart-suggestions"></div>
+        </div>
+
+        <!-- 5. حسابي (بيانات العميل والنقاط) -->
+        <div id="account-view" class="view">
+            <div id="unauth-profile" style="text-align: center; padding: 30px 10px;">
+                <i class="fa-solid fa-user-lock" style="font-size: 40px; color: var(--text-gray); margin-bottom: 15px;"></i>
+                <h3>يرجى تسجيل الدخول</h3>
+                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 20px;">لتتمكن من إدارة حسابك، نقاطك، وعناوينك.</p>
+                <button class="btn-main" onclick="openLoginModal()">تسجيل الدخول / حساب جديد</button>
+            </div>
+
+            <div id="auth-profile" style="display: none;">
+                <!-- بطاقة النقاط -->
+                <div style="background: var(--gold-gradient); padding: 20px; border-radius: 12px; color: white; text-align: center; margin-bottom: 20px;">
+                    <i class="fa-solid fa-award" style="font-size: 30px; margin-bottom: 10px;"></i>
+                    <h3 style="margin-bottom: 5px;">رصيد النقاط الخاص بك</h3>
+                    <h1 id="user-points">0 <span style="font-size: 14px;">نقطة</span></h1>
+                    <p style="font-size: 11px;">يتم حساب النقاط تلقائياً مع كل طلب مكتمل</p>
+                </div>
+
+                <div class="section-title">البيانات الشخصية وعنوان التوصيل</div>
+                <form id="profile-form" onsubmit="saveProfile(event)">
+                    <div class="form-group"><label>الاسم بالكامل</label><input type="text" id="prof-name" class="form-control" required></div>
+                    <div class="form-group"><label>رقم التواصل</label><input type="tel" id="prof-phone" class="form-control" required></div>
+                    <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="prof-email" class="form-control" disabled></div>
+                    
+                    <div class="form-group">
+                        <label>تحديد الموقع (GPS)</label>
+                        <button type="button" class="form-control" style="background: #e9ecef; border: 1px solid #ccc; cursor: pointer;" onclick="getLocation()">
+                            <i class="fa-solid fa-location-crosshairs"></i> اضغط لتحديد موقعك الحالي
+                        </button>
+                        <small id="location-status" style="color: var(--success); display: none;">تم تحديد الموقع بنجاح</small>
+                        <input type="hidden" id="prof-lat"><input type="hidden" id="prof-lng">
+                    </div>
+                    
+                    <div class="form-group"><label>العنوان التفصيلي</label><textarea id="prof-address" class="form-control" rows="3" placeholder="المحافظة، المدينة، الشارع، رقم البناية، الدور" required></textarea></div>
+                    <button type="submit" class="btn-main">حفظ وتحديث البيانات</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="navigate('account', this)"><i class="fa-regular fa-user"></i><span>حسابي</span></div>
+        <div class="nav-item" onclick="navigate('prescription', this)"><i class="fa-solid fa-clipboard-list"></i><span>الروشتة</span></div>
+        <div class="nav-item" onclick="navigate('categories', this)"><i class="fa-solid fa-layer-group"></i><span>التصنيفات</span></div>
+        <div class="nav-item active" onclick="navigate('home', this)"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
+    </nav>
+</div>
+
+<!-- مودال الدخول / التسجيل -->
+<div class="modal-overlay" id="auth-modal">
+    <div class="modal-content">
+        <i class="fa-solid fa-times close-modal" onclick="closeModal('auth-modal')"></i>
+        <h3 style="margin-bottom: 20px; text-align: center;">تسجيل الدخول / حساب جديد</h3>
+        <input type="email" id="auth-email" class="form-control" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;">
+        <input type="password" id="auth-password" class="form-control" placeholder="كلمة المرور" style="margin-bottom: 20px;">
+        <button class="btn-main" onclick="handleAuth()">دخول / تسجيل</button>
+        <p id="auth-error" style="color: var(--danger); font-size: 12px; margin-top: 10px; text-align: center;"></p>
+    </div>
+</div>
+
+<!-- مودال تأكيد الطلب -->
+<div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content">
+        <i class="fa-solid fa-times close-modal" onclick="closeModal('checkout-modal')"></i>
+        <h3 style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">تأكيد بيانات الطلب</h3>
+        <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 15px;">يرجى مراجعة بيانات التوصيل بدقة.</p>
+        
+        <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="checkout-phone" class="form-control"></div>
+        <div class="form-group"><label>عنوان التوصيل</label><textarea id="checkout-address" class="form-control" rows="2"></textarea></div>
+        
+        <div class="form-group">
+            <label>طريقة الدفع</label>
+            <div style="padding: 10px; border: 1px solid var(--gold-primary); background: #fdfaf2; border-radius: 8px; font-weight: bold; color: var(--text-dark);">
+                <i class="fa-solid fa-money-bill-wave" style="color: var(--success); margin-left: 5px;"></i> الدفع نقداً عند الاستلام (COD)
+            </div>
+        </div>
+        
+        <button class="btn-main" onclick="submitFinalOrder()">تأكيد وإرسال الطلب</button>
+    </div>
+</div>
+
+<script>
+    // 1. إعداد Firebase
+    const firebaseConfig = { databaseURL: "https://drwells-27d1d-default-rtdb.firebaseio.com/" };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // 2. حالة التطبيق (State)
+    let currentUser = null;
+    let userData = {};
+    let cart = JSON.parse(localStorage.getItem('drwells_cart')) || {};
+    let productsDb = {};
+    let categoriesList = new Set();
+
+    // 3. التنقل بين الصفحات
+    function navigate(viewId, element = null) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId + '-view').classList.add('active');
+        
+        if (element) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            element.classList.add('active');
+        }
+        
+        if (viewId === 'cart') renderCart();
+        if (viewId === 'account') loadUserProfile();
+        if (viewId === 'categories') renderCategories();
+    }
+
+    // 4. جلب المنتجات وبناء البحث والتصنيفات
+    db.ref('app_products').on('value', snapshot => {
+        productsDb = snapshot.val() || {};
+        renderHomeProducts();
+        extractCategories();
+    });
+
+    function renderHomeProducts() {
+        const container = document.getElementById('home-products');
+        const suggestContainer = document.getElementById('cart-suggestions');
+        container.innerHTML = ''; suggestContainer.innerHTML = '';
+        
+        let count = 0;
+        for (let key in productsDb) {
+            const prod = productsDb[key];
+            const html = createProductCard(key, prod);
+            container.innerHTML += html;
+            
+            // إضافة للمقترحات في السلة (أول 4 منتجات كمثال للأكثر مبيعاً)
+            if(count < 4) suggestContainer.innerHTML += html;
+            count++;
+        }
+    }
+
+    function createProductCard(key, prod) {
+        return `
+            <div class="product-card">
+                <img src="${prod.image}" alt="${prod.name}">
+                <h4>${prod.name}</h4>
+                <div class="price">${prod.price} ج.م</div>
+                <div style="font-size:10px; color:var(--text-gray);">+${Math.floor(prod.price * 0.1)} نقطة</div>
+                <button class="add-to-cart-btn" onclick="addToCart('${key}')">أضف للسلة</button>
+            </div>
+        `;
+    }
+
+    // 5. نظام البحث المتقدم
+    function handleSearch() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const resultsContainer = document.getElementById('search-results');
+        const defaultHome = document.getElementById('default-home-content');
+        
+        navigate('home', document.querySelector('.nav-item:last-child'));
+
+        if (query.length < 2) {
+            resultsContainer.innerHTML = '';
+            defaultHome.style.display = 'block';
+            return;
+        }
+
+        defaultHome.style.display = 'none';
+        let found = false;
+        let html = '<div class="section-title">نتائج البحث</div><div class="grid-2">';
+        
+        for (let key in productsDb) {
+            if (productsDb[key].name.toLowerCase().includes(query) || (productsDb[key].category && productsDb[key].category.includes(query))) {
+                html += createProductCard(key, productsDb[key]);
+                found = true;
+            }
+        }
+        html += '</div>';
+
+        if (!found) {
+            html = `
+                <div style="text-align:center; padding: 40px 15px;">
+                    <i class="fa-solid fa-box-open" style="font-size:40px; color:#ccc; margin-bottom:15px;"></i>
+                    <p style="color:var(--text-gray); margin-bottom: 20px;">لم نعثر على هذا المنتج، تصفح الأقسام التالية:</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+                        ${Array.from(categoriesList).map(c => `<span style="background:var(--gold-gradient); color:white; padding:5px 15px; border-radius:15px; font-size:12px;">${c}</span>`).join('')}
+                    </div>
+                </div>`;
+        }
+        resultsContainer.innerHTML = html;
+    }
+
+    // 6. التصنيفات
+    function extractCategories() {
+        for(let key in productsDb) {
+            if(productsDb[key].category) categoriesList.add(productsDb[key].category);
+        }
+    }
+
+    function renderCategories() {
+        const container = document.getElementById('categories-grid');
+        container.innerHTML = '';
+        categoriesList.forEach(cat => {
+            container.innerHTML += `
+                <div class="product-card" style="padding: 20px 10px; cursor:pointer;" onclick="document.getElementById('searchInput').value='${cat}'; handleSearch();">
+                    <i class="fa-solid fa-layer-group" style="font-size:30px; color:var(--gold-primary); margin-bottom:10px;"></i>
+                    <h4>${cat}</h4>
+                </div>`;
+        });
+    }
+
+    // 7. إدارة السلة
+    function addToCart(key) {
+        if (cart[key]) cart[key].qty++;
+        else cart[key] = { qty: 1, ...productsDb[key] };
+        saveCart(); updateCartBadge(); alert('تمت الإضافة للسلة بنجاح!');
+    }
+
+    function changeQty(key, delta) {
+        cart[key].qty += delta;
+        if (cart[key].qty <= 0) delete cart[key];
+        saveCart(); renderCart(); updateCartBadge();
+    }
+
+    function saveCart() { localStorage.setItem('drwells_cart', JSON.stringify(cart)); }
+    
+    function updateCartBadge() {
+        const count = Object.values(cart).reduce((a, b) => a + b.qty, 0);
+        document.getElementById('header-cart-btn').setAttribute('data-count', count);
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items-container');
+        let total = 0;
+        container.innerHTML = '';
+        
+        if (Object.keys(cart).length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">السلة فارغة حالياً.</p>';
+        } else {
+            for (let key in cart) {
+                const item = cart[key];
+                total += item.price * item.qty;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}">
+                        <div class="cart-item-details">
+                            <h5 style="margin-bottom:5px; font-size:12px;">${item.name}</h5>
+                            <span style="color:var(--gold-primary); font-weight:bold;">${item.price} ج.م</span>
+                        </div>
+                        <div class="cart-qty-ctrl">
+                            <button onclick="changeQty('${key}', 1)">+</button>
+                            <span>${item.qty}</span>
+                            <button onclick="changeQty('${key}', -1)">-</button>
+                        </div>
+                        <button class="del-btn" onclick="changeQty('${key}', -999)"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`;
+            }
+        }
+        document.getElementById('cart-total').innerText = total + ' ج.م';
+    }
+
+    // 8. المصادقة والعملاء (Auth & Profile)
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        if(user) {
+            document.getElementById('unauth-profile').style.display = 'none';
+            document.getElementById('auth-profile').style.display = 'block';
+            db.ref('users/' + user.uid).on('value', snap => {
+                userData = snap.val() || {};
+                document.getElementById('user-points').innerHTML = `${userData.points || 0} <span style="font-size: 14px;">نقطة</span>`;
+            });
+        } else {
+            document.getElementById('unauth-profile').style.display = 'block';
+            document.getElementById('auth-profile').style.display = 'none';
+        }
+    });
+
+    function openLoginModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function handleAuth() {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-password').value;
+        const err = document.getElementById('auth-error');
+        
+        auth.signInWithEmailAndPassword(email, pass)
+            .then(() => { closeModal('auth-modal'); loadUserProfile(); })
+            .catch(e => {
+                if(e.code === 'auth/user-not-found') {
+                    auth.createUserWithEmailAndPassword(email, pass)
+                        .then(res => {
+                            db.ref('users/' + res.user.uid).set({ email, points: 0 });
+                            closeModal('auth-modal');
+                        })
+                        .catch(err => err.innerText = "فشل إنشاء الحساب.");
+                } else {
+                    err.innerText = "بيانات الدخول غير صحيحة.";
+                }
+            });
+    }
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                document.getElementById('prof-lat').value = pos.coords.latitude;
+                document.getElementById('prof-lng').value = pos.coords.longitude;
+                document.getElementById('location-status').style.display = 'block';
+            }, () => alert("يرجى تفعيل صلاحية الموقع الجغرافي."));
+        }
+    }
+
+    function loadUserProfile() {
+        if(currentUser) {
+            document.getElementById('prof-email').value = currentUser.email;
+            document.getElementById('prof-name').value = userData.name || '';
+            document.getElementById('prof-phone').value = userData.phone || '';
+            document.getElementById('prof-address').value = userData.address || '';
+        }
+    }
+
+    function saveProfile(e) {
+        e.preventDefault();
+        if(!currentUser) return;
+        const updates = {
+            name: document.getElementById('prof-name').value,
+            phone: document.getElementById('prof-phone').value,
+            address: document.getElementById('prof-address').value,
+            lat: document.getElementById('prof-lat').value,
+            lng: document.getElementById('prof-lng').value
+        };
+        db.ref('users/' + currentUser.uid).update(updates).then(() => alert('تم الحفظ بنجاح!'));
+    }
+
+    // 9. إتمام الطلب (السر الذكي لتصحيح مسار الإشعارات)
+    function initiateCheckout() {
+        if (Object.keys(cart).length === 0) return alert('السلة فارغة!');
+        if (!currentUser) return openLoginModal();
+        
+        // تعبئة البيانات تلقائياً من البروفايل
+        document.getElementById('checkout-phone').value = userData.phone || '';
+        document.getElementById('checkout-address').value = userData.address || '';
+        document.getElementById('checkout-modal').style.display = 'flex';
+    }
+
+    function submitFinalOrder() {
+        const phone = document.getElementById('checkout-phone').value;
+        const address = document.getElementById('checkout-address').value;
+        if(!phone || !address) return alert("يرجى إكمال بيانات التوصيل.");
+
+        const orderId = 'ORD-' + Date.now();
+        let total = 0; let earnedPoints = 0;
+        for(let key in cart) { 
+            total += cart[key].price * cart[key].qty; 
+            earnedPoints += Math.floor(cart[key].price * 0.1) * cart[key].qty;
+        }
+
+        const orderData = {
+            userId: currentUser.uid,
+            phone, address, items: cart, total, 
+            status: "تم استلام الطلب", // تطبيق ذكي لطلبك بتجنب حالة "خرج للتوصيل" التلقائية
+            payment: "COD",
+            date: new Date().toISOString()
+        };
+
+        db.ref('orders/' + orderId).set(orderData).then(() => {
+            // تحديث نقاط العميل
+            db.ref('users/' + currentUser.uid).update({ points: (userData.points || 0) + earnedPoints });
+            
+            cart = {}; saveCart(); renderCart(); updateCartBadge(); closeModal('checkout-modal');
+            
+            // رسالة محايدة مع رابط تتبع كما تم التصحيح مسبقاً في نظام التوصيل
+            alert(`تم استلام طلبك بنجاح! \nيمكنك تتبع حالة الطلب عبر الرابط:\n drwells.com/track/${orderId}`);
+            navigate('home', document.querySelector('.nav-item:last-child'));
+        });
+    }
+
+    // 10. الروشتة الإلكترونية
+    document.getElementById('rx-upload').addEventListener('change', function(e) {
+        const preview = document.getElementById('rx-preview');
+        preview.innerHTML = '';
+        Array.from(this.files).forEach(file => {
+            const url = URL.createObjectURL(file);
+            preview.innerHTML += `<img src="${url}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">`;
+        });
+    });
+
+    function toggleInsuranceDocs() {
+        document.getElementById('insurance-docs').style.display = document.getElementById('is-insurance').checked ? 'block' : 'none';
+    }
+
+    function submitPrescription() {
+        if(!currentUser) { alert("يرجى تسجيل الدخول أولاً."); return openLoginModal(); }
+        const files = document.getElementById('rx-upload').files;
+        if(files.length === 0) return alert("يرجى تصوير أو إرفاق الروشتة.");
+        
+        // هنا في الواقع يتم رفع الصور إلى Firebase Storage ثم حفظ الرابط في DB
+        // للتبسيط في الكود، سنقوم بإنشاء سجل الطلب مباشرة
+        const reqId = 'RX-' + Date.now();
+        db.ref('prescriptions/' + reqId).set({
+            userId: currentUser.uid,
+            hasInsurance: document.getElementById('is-insurance').checked,
+            status: 'بانتظار مراجعة الصيدلي',
+            date: new Date().toISOString()
+        }).then(() => {
+            alert("تم استلام الروشتة بنجاح، سيقوم الصيدلي بمراجعتها والتواصل معك لتحديد السعر والإرسال.");
+            document.getElementById('rx-preview').innerHTML = '';
+            document.getElementById('rx-upload').value = '';
+        });
+    }
+
+    // تشغيل مبدئي
+    updateCartBadge();
+</script>
+
+</body>
+</html>
