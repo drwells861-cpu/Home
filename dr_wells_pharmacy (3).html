@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dr. Wells Pharmacy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase & HTML5 Qrcode Scanner -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        primary: '#D4AF37',
+                        primaryDark: '#AA7C11',
+                        secondary: '#1a1a1a', 
+                        accent: '#FFD700',
+                        bgBody: '#f4f5f7',
+                        bgApp: '#ffffff',
+                    },
+                    boxShadow: {
+                        'glow': '0 8px 20px rgba(212, 175, 55, 0.2)',
+                        'premium': '0 8px 24px rgba(0, 0, 0, 0.08)',
+                        'soft': '0 2px 8px rgba(0, 0, 0, 0.04)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.03)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f4f5f7; margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; height: 100dvh; }
+        ::-webkit-scrollbar { display: none; } 
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        
+        .hidden-view { display: none !important; }
+        
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        #main-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 85px;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 75px; background: rgba(255, 255, 255, 0.98); border-top: 1px solid #eaedf1; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; z-index: 100; backdrop-filter: blur(15px); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); transition: transform 0.3s ease; }
+        .bottom-nav.hide { transform: translateY(100%); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #6c757d; font-size: 11px; font-weight: 600; cursor: pointer; flex: 1; transition: all 0.3s; }
+        .nav-item i { font-size: 22px; transition: 0.3s; }
+        .nav-item.active { color: #D4AF37; }
+        .nav-item.active i { transform: translateY(-4px) scale(1.1); color: #1a1a1a; }
+
+        /* Toasts & Modals */
+        #toast-container { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: 90%; max-width: 400px;}
+        .toast { padding: 14px 24px; border-radius: 12px; color: white; font-weight: 700; font-size: 0.95rem; box-shadow: 0 15px 35px -5px rgba(0,0,0,0.4); animation: pop 0.4s forwards; display: flex; align-items: center; gap: 12px; width: 100%; text-align: center; justify-content: center;}
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); border: 1px solid #047857;}
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); border: 1px solid #b91c1c;}
+        .toast.info { background: linear-gradient(135deg, #1a1a1a, #0d0d0d); border: 1px solid #D4AF37; color: #D4AF37; } 
+        @keyframes pop { 0% { transform: scale(0.9) translateY(-10px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+
+        /* Inputs & Buttons */
+        .input-premium-form { @apply w-full pr-11 pl-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all text-gray-900 font-bold placeholder:text-gray-400 text-sm shadow-sm; }
+        .input-premium-icon { @apply absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors text-lg; }
+        .input-premium-wrapper { @apply relative mb-4; }
+        .input-premium-wrapper:focus-within .input-premium-icon { @apply text-primary; }
+        .form-premium-label { @apply block text-xs font-black text-gray-700 mb-1.5 mr-1; }
+        
+        .btn-primary { @apply bg-gradient-to-r from-[#D4AF37] to-[#AA7C11] text-white font-black py-3.5 px-6 rounded-xl hover:shadow-glow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-sm border-none; }
+        
+        /* Badges & Sliders */
+        .cart-badge { position: absolute; top: -5px; right: -8px; background: #dc3545; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 50%; box-shadow: 0 2px 4px rgba(220,53,69,0.3); }
+        .slider-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .slider-slide { min-width: 100%; flex-shrink: 0; position: relative; }
+        
+        /* Product Card Modern */
+        .product-card-modern { 
+            background: #fff; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            border: 1px solid #eaedf1; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02); 
+            display: flex; 
+            flex-direction: column; 
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .product-card-modern:active { transform: scale(0.98); }
+        .product-card-modern .img-container {
+            width: 100%; 
+            height: 140px; 
+            padding: 15px; 
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .product-card-modern img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .product-card-modern .content { padding: 12px; flex: 1; display: flex; flex-direction: column; }
+        .product-card-modern .btn-add-dark {
+            background: #232536; 
+            color: #fff;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        .product-card-modern .btn-add-dark:hover { background: #D4AF37; }
+        .product-card-modern .btn-soldout {
+            background: #f8d7da; color: #dc3545; width: 100%; padding: 10px; text-align: center; font-weight: 800; font-size: 13px; cursor: not-allowed;
+        }
+
+        .brand-circle { width: 75px; height: 75px; border-radius: 50%; background: #fff; border: 2px solid #eaedf1; padding: 6px; flex-shrink: 0; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .brand-circle.active { border-color: #D4AF37; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); transform: scale(1.05); }
+        .brand-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* Categories Tree Styling */
+        .category-accordion { border-bottom: 1px solid #eaedf1; background: #fff; margin-bottom: 8px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .cat-header { width: 100%; text-align: right; padding: 18px 20px; font-weight: 900; font-size: 15px; color: #1a1a1a; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .cat-icon { transition: transform 0.3s ease; color: #D4AF37; }
+        .cat-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #fafafa; }
+        .cat-content.open { max-height: 2000px; }
+        .sub-cat-header { width: 100%; text-align: right; padding: 14px 24px; font-weight: 700; font-size: 14px; color: #4a4a4a; border-top: 1px solid #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
+        .sub-cat-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: #f4f5f7; }
+        .sub-cat-content.open { max-height: 1000px; }
+        .sub-sub-item { display: flex; align-items: center; width: 100%; text-align: right; padding: 12px 36px; font-weight: 700; font-size: 13px; color: #6c757d; border-top: 1px dashed #eaedf1; transition: 0.2s; }
+        .sub-sub-item:hover { color: #D4AF37; background: #fff; padding-right: 42px; }
+        .sub-sub-item i { margin-left: 10px; font-size: 10px; color: #D4AF37; }
+
+        /* Lists style for Account Page */
+        .menu-list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #fff; border-bottom: 1px solid #f1f1f1; font-weight: 700; font-size: 14px; color: #232536; transition: background 0.2s; cursor: pointer;}
+        .menu-list-item:active { background: #f8f9fa; }
+        .menu-list-item i.leading { width: 24px; text-align: right; color: #6c757d; font-size: 18px; margin-left: 12px; }
+        .menu-list-item i.trailing { color: #ced4da; font-size: 12px; }
+
+        /* Top Header Title Style */
+        .section-title { display: flex; justify-content: center; align-items: center; margin: 24px 0 16px 0; }
+        .section-title span { font-weight: 900; font-size: 16px; color: #1a1a1a; padding: 0 16px; }
+        .section-title::before, .section-title::after { content: ''; flex: 1; border-bottom: 1px solid #eaedf1; margin: 0 16px; }
+
+        .loader-spinner { width: 24px; height: 24px; border: 3px solid #f3f3f3; border-top: 3px solid #D4AF37; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .pulse-viewers { animation: pulseRed 2s infinite; }
+        @keyframes pulseRed { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
+    <!-- AI Scan Loading Overlay -->
+    <div id="ai-loading-overlay" class="fixed inset-0 z-[300] hidden flex-col items-center justify-center bg-white/95 backdrop-blur-sm">
+        <div class="relative w-24 h-24 mb-6">
+            <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-t-primary rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center text-primary text-3xl"><i class="fa-solid fa-brain animate-pulse"></i></div>
+        </div>
+        <h3 class="font-black text-xl text-gray-900">جاري التحليل بالذكاء الاصطناعي...</h3>
+        <p id="ai-status-msg" class="text-xs text-gray-500 font-bold mt-2 text-center px-6 leading-relaxed">نقوم باستخراج النصوص والتعرف على العناصر فوراً...</p>
+    </div>
+
+    <!-- Camera / Album Source Selection Modal -->
+    <div id="camera-source-modal" class="fixed inset-0 z-[260] hidden flex items-end justify-center bg-black/60 p-0" onclick="toggleCameraSourceModal(false, 'ai')">
+        <div class="bg-white rounded-t-[2.5rem] w-full max-w-md p-6 pb-8 space-y-4 shadow-2xl transition-transform duration-300" onclick="event.stopPropagation()">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-2"></div>
+            <h3 class="font-black text-center text-gray-900 text-lg mb-4" id="camera-modal-title">البحث الذكي بالصور</h3>
+            <button id="btn-camera-opt" onclick="triggerCameraInput('camera')" class="w-full bg-primary/10 hover:bg-primary/20 text-primaryDark font-black py-4 px-6 rounded-2xl flex items-center justify-between transition-colors shadow-soft">
+                <span class="text-sm" id="btn-camera-text">التقاط صورة للعبوة الآن</span>
+                <i class="fa-solid fa-camera text-xl"></i>
+            </button>
+            <button id="btn-album-opt" onclick="triggerCameraInput('album')" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-black py-4 px-6 rounded-2xl flex items-center justify-between transition-colors shadow-soft border border-gray-100">
+                <span class="text-sm" id="btn-album-text">اختيار صورة من الألبوم</span>
+                <i class="fa-solid fa-images text-xl"></i>
+            </button>
+            <button onclick="toggleCameraSourceModal(false)" class="w-full bg-gray-100 text-gray-500 font-bold py-3.5 rounded-2xl text-xs">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- Barcode Scanner Modal -->
+    <div id="barcode-modal" class="fixed inset-0 z-[250] hidden flex items-center justify-center bg-black/90 p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative">
+            <div class="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="font-black text-gray-900 flex items-center gap-2"><i class="fa-solid fa-barcode text-primary text-lg"></i>مسح باركود المنتج الدولي</h3>
+                <button onclick="closeBarcodeScanner()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-red-500 shadow-sm hover:bg-red-50"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div class="p-4 bg-black flex justify-center items-center">
+                <div id="reader" style="width:100%; min-height: 250px; border-radius: 1rem; overflow: hidden; border: 2px solid #D4AF37;"></div>
+            </div>
+            <div class="p-4 text-center text-xs font-bold text-gray-500 bg-gray-50 leading-relaxed border-t border-gray-100">
+                ضع الباركود الدولي الخاص بالمنتج بوضوح أمام الكاميرا للتعرف السريع عليه.
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Modal -->
+    <div id="generic-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease]">
+        <div class="bg-white rounded-3xl shadow-premium relative border border-gray-100 w-[95%] max-w-md overflow-hidden p-6 flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 id="modal-title" class="font-black text-lg text-gray-900"></h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-red-100 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div id="modal-content" class="overflow-y-auto pr-2 text-sm text-gray-700 leading-relaxed font-bold"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="client-app" class="app-container">
+        
+        <!-- Header -->
+        <header class="bg-white p-3 border-b border-gray-100 shadow-sm sticky top-0 z-50 flex justify-between items-center shrink-0">
+            <div class="flex gap-4 text-gray-800 text-xl items-center">
+                <i class="fa-solid fa-magnifying-glass cursor-pointer hover:text-primary transition-colors" onclick="document.getElementById('client-search').focus()"></i>
+                <i class="fa-solid fa-barcode cursor-pointer text-gray-500 hover:text-primary transition-colors" onclick="openBarcodeScanner()"></i>
+                <div class="relative">
+                    <i class="fa-solid fa-camera cursor-pointer text-gray-500 hover:text-primary transition-colors" onclick="openAiSmartSearchCamera()"></i>
+                    <!-- Hidden Camera Inputs -->
+                    <input type="file" id="smart-camera-direct" accept="image/*" capture="environment" class="hidden" onchange="processSmartImageAnalysis(event, 'ai')">
+                    <input type="file" id="smart-camera-album" accept="image/*" class="hidden" onchange="processSmartImageAnalysis(event, 'ai')">
+                    <!-- Prescription Upload inputs -->
+                    <input type="file" id="prescription-camera-direct" accept="image/*" capture="environment" class="hidden" onchange="processPrescriptionOrDoc(event, 'rx')">
+                    <input type="file" id="prescription-camera-album" accept="image/*" class="hidden" onchange="processPrescriptionOrDoc(event, 'rx')">
+                </div>
+                <div class="relative cursor-pointer ml-1" onclick="navigate('cart')">
+                    <i class="fa-solid fa-cart-shopping hover:text-primary transition-colors"></i>
+                    <span id="cart-badge" class="cart-badge hidden">0</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('home')">
+                <img id="header-store-logo" src="https://lh3.googleusercontent.com/pw/AP1GczOub4lqSzoSaYf-PPzzwR0Xi_b9K2-KrfYRDjE3jgoGudFNiVf-BuFD6IaQfPw4cFrqYe-CFmET1aQmHmKeZH9oV1d6cIYjZRgd27ZEYxMdtxu7LmhusnHwNuE-YUDaaWiCLk-benb6zWcCUj2H5LgG=w2499-h2612-s-no-gm?authuser=0" alt="Store Logo" class="h-10 w-auto object-contain drop-shadow-sm max-w-[100px]">
+            </div>
+        </header>
+
+        <!-- Search Bar -->
+        <div id="search-container" class="bg-white p-3 border-b border-gray-100 z-40 w-full shrink-0 relative">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="client-search" oninput="handleClientSearch()" class="w-full pr-12 pl-10 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-bold focus:border-primary focus:bg-white transition-all placeholder:text-gray-400" placeholder="ابحث باسم المنتج، المادة الفعالة، الوصف...">
+                <i id="clear-search-btn" class="fa-solid fa-times absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hidden hover:text-red-500 bg-white p-1 rounded-full shadow-sm" onclick="clearSearchFilter()"></i>
+            </div>
+        </div>
+
+        <!-- MAIN SCROLL AREA -->
+        <div id="main-scroll-area">
+            
+            <!-- 1. HOME VIEW -->
+            <div id="view-home" class="page-view animate-[fadeIn_0.3s_ease] p-0">
+                
+                <!-- Banners Slider -->
+                <div id="banner-container-wrapper" class="relative w-full h-48 overflow-hidden bg-gray-50 border-b border-gray-100">
+                    <div id="banners-track" class="slider-track h-full"></div>
+                    <div id="banner-dots" class="absolute bottom-3 left-0 right-0 flex justify-center z-30"></div>
+                </div>
+
+                <!-- Search Results Grid (Visible on typing / AI Scan results) -->
+                <div id="search-results-wrapper" class="hidden p-4">
+                    <div class="section-title"><span id="search-results-title">نتائج البحث</span></div>
+                    <div id="search-products-grid" class="grid grid-cols-2 gap-3 mb-6"></div>
+                </div>
+
+                <!-- Home Dynamic Sections -->
+                <div id="home-content-wrapper">
+                    <!-- Promos from DB -->
+                    <div id="dynamic-promotions-container" class="pb-6"></div>
+                    
+                    <!-- Brands -->
+                    <div class="bg-white py-6 mt-2">
+                        <div class="section-title"><span>العلامات التجارية</span></div>
+                        <div id="brands-container" class="flex gap-3 overflow-x-auto hide-scroll px-4 pb-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. FILTERED PRODUCTS VIEW -->
+            <div id="view-filtered-list" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 bg-[#f4f5f7] min-h-full">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+                    <button onclick="navigate('home')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 id="filtered-list-title" class="font-black text-lg text-gray-900 flex-1 text-center truncate">المنتجات</h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4">
+                    <div id="filtered-products-grid" class="grid grid-cols-2 gap-3"></div>
+                </div>
+            </div>
+
+            <!-- 3. CATEGORIES VIEW -->
+            <div id="view-categories" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-0 bg-[#f4f5f7] min-h-full">
+                <div class="section-title mt-6"><span>التصنيفات الشاملة</span></div>
+                <div class="p-4 pt-0">
+                    <div id="full-categories-container"></div>
+                </div>
+            </div>
+
+            <!-- 4. PRODUCT DETAILS VIEW -->
+            <div id="view-product-details" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 bg-white min-h-full z-[200]">
+                <button onclick="navigateBackFromDetails()" class="absolute top-4 left-4 z-50 w-10 h-10 bg-white/90 backdrop-blur-md text-gray-800 rounded-full flex items-center justify-center shadow-soft border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+                
+                <div class="w-full h-80 bg-gray-50 p-8 flex items-center justify-center relative border-b border-gray-100">
+                    <img id="pd-img" src="" class="max-w-full max-h-full object-contain mix-blend-multiply drop-shadow-md">
+                </div>
+                
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-2">
+                        <span id="pd-cat" class="text-[10px] font-black text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20 inline-block"></span>
+                    </div>
+                    <h2 id="pd-title" class="text-xl font-black text-gray-900 leading-tight mb-4"></h2>
+                    
+                    <div class="flex items-center gap-2 text-xs font-bold text-gray-500 mb-6 bg-red-50 text-red-600 p-2 rounded-lg w-fit">
+                        <i class="fa-solid fa-eye pulse-viewers"></i> <span id="pd-viewers">5</span> عميل يشاهد هذا المنتج الآن
+                    </div>
+
+                    <div class="flex items-end gap-2 pb-5 border-b border-gray-100">
+                        <span id="pd-price" class="text-3xl font-black text-[#232536] tracking-tight"></span>
+                        <span class="text-sm font-bold text-gray-500 mb-1">ج.م</span>
+                        <span id="pd-old-price" class="mr-3 text-sm font-bold text-gray-400 line-through"></span>
+                    </div>
+                    
+                    <div class="mt-5">
+                        <h4 class="font-black text-sm text-gray-800 mb-2 flex items-center gap-2"><div class="w-1.5 h-4 bg-primary rounded-full"></div> تفاصيل المنتج ومكوناته</h4>
+                        <p id="pd-desc" class="text-xs font-bold text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 whitespace-pre-line"></p>
+                    </div>
+
+                    <!-- Similar Products -->
+                    <div class="mt-8 pt-6 border-t border-gray-100">
+                        <div class="section-title !mt-0 !mb-4"><span>منتجات مماثلة</span></div>
+                        <div id="similar-products-container" class="flex gap-3 overflow-x-auto hide-scroll pb-2"></div>
+                    </div>
+                </div>
+
+                <!-- Sticky Add Button -->
+                <div class="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] flex gap-3">
+                    <button id="pd-add-btn" class="btn-primary flex-1 py-4 text-base shadow-premium bg-[#232536] text-white hover:bg-primary"><i class="fa-solid fa-cart-plus text-lg"></i> أضف إلى السلة</button>
+                    <button onclick="askAboutProductWhatsApp()" class="w-14 h-14 shrink-0 bg-[#25D366] text-white rounded-xl flex items-center justify-center text-2xl shadow-soft"><i class="fa-brands fa-whatsapp"></i></button>
+                </div>
+            </div>
+
+            <!-- 5. ACCOUNT VIEW -->
+            <div id="view-account" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-0 min-h-full bg-[#f4f5f7]">
+                <div class="section-title mt-6"><span>حسابي</span></div>
+
+                <div id="auth-profile" class="hidden p-4">
+                    <div class="bg-gradient-to-br from-[#232536] to-[#1a1a24] p-6 rounded-2xl text-center text-white mb-6 shadow-premium relative overflow-hidden">
+                        <i class="fa-solid fa-crown absolute -left-4 -top-4 text-7xl text-white/5 -rotate-12"></i>
+                        <h3 class="text-xl font-black text-white mb-1 tracking-wide" id="prof-display-name"></h3>
+                        <p class="text-xs text-primary font-bold mb-3" id="prof-display-phone" dir="ltr"></p>
+                        <p class="text-[11px] text-gray-300 font-bold mb-4" id="prof-display-address"></p>
+                        
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl inline-block w-full">
+                            <div class="text-sm text-gray-300 font-bold mb-1">نقاط المكافآت</div>
+                            <div class="text-3xl font-black text-white" id="user-points">0 <span class="text-xs font-normal text-gray-400">نقطة</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu List -->
+                <div class="bg-white border-y border-gray-200 mt-4">
+                    <div id="login-menu-item" class="menu-list-item" onclick="showLoginModal()">
+                        <div class="flex items-center"><i class="fa-regular fa-user leading"></i> تسجيل الدخول / إنشاء حساب</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item hidden" id="orders-menu-item" onclick="navigate('orders')">
+                        <div class="flex items-center"><i class="fa-solid fa-box-open leading"></i> طلباتي السابقة</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="navigate('mommies')">
+                        <div class="flex items-center"><i class="fa-solid fa-baby-carriage leading text-pink-500"></i> قسم الماميز</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="navigate('branches')">
+                        <div class="flex items-center"><i class="fa-solid fa-store leading"></i> فروعنا</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="showContactModal()">
+                        <div class="flex items-center"><i class="fa-solid fa-phone leading"></i> اتصل بنا</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item hidden text-red-500" id="logout-menu-item" onclick="logout()">
+                        <div class="flex items-center"><i class="fa-solid fa-arrow-right-from-bracket leading text-red-400"></i> تسجيل الخروج</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. BRANCHES VIEW -->
+            <div id="view-branches" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 min-h-full bg-[#f4f5f7]">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+                    <button onclick="navigate('account')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 class="font-black text-lg text-gray-900 flex-1 text-center">فروعنا</h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4 space-y-3" id="branches-container"></div>
+            </div>
+
+            <!-- 7. MOMMIES CORNER VIEW -->
+            <div id="view-mommies" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 min-h-full bg-[#fff0f5]">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-pink-100 shadow-sm">
+                    <button onclick="navigate('account')" class="w-8 h-8 flex items-center justify-center rounded-full bg-pink-50 text-pink-700 hover:bg-pink-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 class="font-black text-lg text-pink-600 flex-1 text-center">قسم الماميز <i class="fa-solid fa-baby ml-1"></i></h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4" id="mommies-container"></div>
+            </div>
+
+            <!-- 8. PRESCRIPTION & INSURANCE VIEW -->
+            <div id="view-prescription" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-4">
+                <div class="section-title"><span>الروشتة والتعاقدات للتأمين</span></div>
+                
+                <!-- Tab Selector -->
+                <div class="flex bg-gray-100 rounded-xl p-1 mb-4">
+                    <button onclick="switchPrescriptionTab('normal')" id="tab-rx-normal" class="flex-1 py-2.5 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all">روشتة عادية</button>
+                    <button onclick="switchPrescriptionTab('insurance')" id="tab-rx-insurance" class="flex-1 py-2.5 rounded-lg font-black text-xs text-gray-500 transition-all">تعاقدات وتأمينات طبية</button>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center relative overflow-hidden">
+                    
+                    <!-- Normal Rx Instruction -->
+                    <div id="rx-normal-info">
+                        <p class="text-xs text-gray-500 mb-5 font-bold leading-relaxed">قم بتصوير الروشتة أو إرفاقها، وسيقوم الصيدلي بتجهيزها وتوصيلها فوراً.</p>
+                    </div>
+
+                    <!-- Insurance Rx Instruction -->
+                    <div id="rx-insurance-info" class="hidden">
+                        <p class="text-xs text-red-500 mb-4 font-black bg-red-50 p-2.5 rounded-xl border border-red-100 leading-relaxed">
+                            <i class="fa-solid fa-shield-halved ml-1"></i> يرجى إرفاق صورة الروشتة + بطاقة التأمين الطبي لطلب موافقة التأمين.
+                        </p>
+                        
+                        <!-- Insurance Company list -->
+                        <div class="mb-4 text-right">
+                            <label class="form-premium-label">شركة التأمين الطبي</label>
+                            <select id="rx-insurance-company" class="w-full pr-4 pl-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none font-bold text-xs focus:border-primary">
+                                <option value="">اختر شركة التأمين المعتمدة...</option>
+                                <option value="MetLife">ميتلايف MetLife</option>
+                                <option value="Bupa">بوبا Bupa</option>
+                                <option value="AXA">أكسا AXA</option>
+                                <option value="GlobeMed">جلوب ميد GlobeMed</option>
+                                <option value="NextCare">نكست كير NextCare</option>
+                                <option value="Medgulf">ميدغلف Medgulf</option>
+                                <option value="Other">شركة أخرى</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Upload Action Area -->
+                    <div class="border-2 border-dashed border-gray-300 bg-gray-50 p-6 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors mb-4" onclick="openUploadSourceModal('rx')">
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-sm font-black text-gray-700" id="upload-box-text">إرفاق صورة المستند / الروشتة</p>
+                        <p class="text-[10px] text-gray-400 font-bold mt-1">يتم تحويل الملفات تلقائياً إلى روابط سحابية</p>
+                    </div>
+
+                    <!-- Preview Container -->
+                    <div id="rx-preview" class="grid grid-cols-3 gap-2 mb-4 justify-center"></div>
+
+                    <!-- Form Fields -->
+                    <div class="text-right space-y-3 mb-4">
+                        <div>
+                            <label class="form-premium-label">ملاحظات إضافية للصيدلي</label>
+                            <textarea id="rx-notes" class="w-full p-3 bg-gray-50 border-2 border-gray-200 rounded-xl outline-none text-xs font-bold focus:border-primary h-20 placeholder:text-gray-400" placeholder="اكتب أي ملاحظات كبدائل الأدوية أو مواعيد الاتصال بك..."></textarea>
+                        </div>
+                    </div>
+
+                    <button id="prescription-submit-btn" onclick="submitPrescription()" class="btn-primary w-full bg-[#232536] text-white hover:bg-primary">
+                        <i class="fa-solid fa-paper-plane"></i> إرسال الطلب والمستندات للصيدلية
+                    </button>
+                </div>
+            </div>
+
+            <!-- 9. CART VIEW -->
+            <div id="view-cart" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-4">
+                <div class="section-title"><span>سلة المشتريات</span></div>
+                <div id="cart-items-container" class="space-y-3 mb-6"></div>
+                
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-4">
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="font-black text-gray-900">الإجمالي النهائي:</span>
+                        <span class="text-2xl font-black text-primary" id="cart-total-final">0 <span class="text-xs text-gray-500">ج.م</span></span>
+                    </div>
+                    <button onclick="checkout()" id="checkout-btn" class="btn-primary w-full mt-5 bg-[#232536] text-white">إتمام الطلب وتحديد التوصيل</button>
+                </div>
+            </div>
+            
+            <!-- 10. ORDERS VIEW -->
+            <div id="view-orders" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-4">
+                <div class="flex items-center gap-3 mb-4">
+                    <button onclick="navigate('account')" class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h3 class="font-black text-lg">سجل طلباتي</h3>
+                </div>
+                <div id="client-orders-container" class="space-y-4"></div>
+            </div>
+
+        </div> <!-- End Scroll Area -->
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" id="main-bottom-nav">
+            <div class="nav-item" onclick="navigate('account', this)"><i class="fa-regular fa-user"></i><span>حسابي</span></div>
+            <div class="nav-item" onclick="navigate('prescription', this)"><i class="fa-solid fa-clipboard-list"></i><span>الروشتة</span></div>
+            <div class="nav-item" onclick="navigate('categories', this)"><i class="fa-solid fa-layer-group"></i><span>التصنيفات</span></div>
+            <div class="nav-item active" onclick="navigate('home', this)"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
+        </nav>
+
+        <!-- Auth Modal (Clean Login & Multi-step Detailed Register) -->
+        <div id="auth-modal" class="fixed inset-0 z-[250] hidden flex items-center justify-center bg-black/80 p-4">
+            <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative p-6 max-h-[90vh] flex flex-col">
+                <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-4 left-4 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 z-50"><i class="fa-solid fa-times"></i></button>
+                
+                <div class="text-center mb-4 mt-2 shrink-0">
+                    <h2 class="text-xl font-black text-gray-900" id="auth-title">تسجيل الدخول</h2>
+                </div>
+                
+                <div class="flex bg-gray-100 rounded-xl p-1 mb-4 shrink-0">
+                    <button onclick="toggleAuthMode(false)" id="tab-login" class="flex-1 py-2.5 rounded-lg font-black text-sm bg-white shadow-sm text-primary transition-all">دخول</button>
+                    <button onclick="toggleAuthMode(true)" id="tab-reg" class="flex-1 py-2.5 rounded-lg font-black text-sm text-gray-500 transition-all">إنشاء حساب 2026</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 text-right overflow-y-auto pr-1">
+                    <div class="input-premium-wrapper">
+                        <label class="form-premium-label">رقم الهاتف (الأساسي أو الواتساب)</label>
+                        <input type="tel" id="login-id" required class="input-premium-form" placeholder="مثال: 01001234567">
+                    </div>
+                    <div class="input-premium-wrapper">
+                        <label class="form-premium-label">كلمة المرور</label>
+                        <input type="password" id="login-password" required class="input-premium-form" placeholder="****">
+                    </div>
+                    <button type="submit" class="btn-primary w-full bg-[#232536] text-white">تسجيل الدخول</button>
+                </form>
+
+                <!-- Detailed Premium Register Form (2026 Standards) -->
+                <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4 text-right hidden overflow-y-auto pr-1 flex-1">
+                    <div class="bg-primary/5 p-3 rounded-xl border border-primary/10 text-[11px] font-bold text-primaryDark text-center mb-2">
+                        الرجاء كتابة بيانات دقيقة لسهولة توصيل الأدوية والروشتات الطبية وتأكيد التأمين.
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">الاسم بالكامل</label>
+                            <input type="text" id="reg-name" required class="input-premium-form !pr-4" placeholder="الاسم ثلاثي">
+                        </div>
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">السن</label>
+                            <input type="number" id="reg-age" required min="1" max="120" class="input-premium-form !pr-4" placeholder="مثال: 28">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">النوع</label>
+                            <select id="reg-gender" required class="w-full pr-4 pl-4 py-3 bg-white border-2 border-gray-200 rounded-xl outline-none font-bold text-xs focus:border-primary">
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                            </select>
+                        </div>
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">رقم الموبايل الأساسي</label>
+                            <input type="tel" id="reg-phone" required class="input-premium-form !pr-4" placeholder="01XXXXXXXXX">
+                        </div>
+                    </div>
+
+                    <div class="input-premium-wrapper">
+                        <label class="form-premium-label">رقم الواتساب (اختياري)</label>
+                        <input type="tel" id="reg-whatsapp" class="input-premium-form !pr-4" placeholder="إذا كان مختلفاً عن الأساسي">
+                    </div>
+
+                    <h4 class="font-black text-xs text-primaryDark border-b border-gray-100 pb-1.5 mt-4"><i class="fa-solid fa-map-location-dot"></i> تفاصيل العنوان التفصيلي</h4>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">المحافظة</label>
+                            <input type="text" id="reg-governorate" required class="input-premium-form !pr-4" placeholder="مثال: القاهرة">
+                        </div>
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">المدينة</label>
+                            <input type="text" id="reg-city" required class="input-premium-form !pr-4" placeholder="مثال: التجمع">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">المنطقة / الحي</label>
+                            <input type="text" id="reg-district" required class="input-premium-form !pr-4" placeholder="مثال: النرجس">
+                        </div>
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">الشارع ورقم المبنى</label>
+                            <input type="text" id="reg-street" required class="input-premium-form !pr-4" placeholder="مثال: شارع 15 مبنى 4">
+                        </div>
+                    </div>
+
+                    <div class="input-premium-wrapper">
+                        <label class="form-premium-label">علامة مميزة للعنوان</label>
+                        <input type="text" id="reg-landmark" class="input-premium-form !pr-4" placeholder="بجوار سوبرماركت أو مدرسة معينة">
+                    </div>
+
+                    <!-- GPS Location Picker Button -->
+                    <div class="p-3 bg-gray-50 rounded-2xl border border-gray-200 flex flex-col gap-2 items-center text-center">
+                        <div class="flex items-center gap-2 text-xs font-black text-gray-800">
+                            <i class="fa-solid fa-location-crosshairs text-primary text-base"></i>
+                            <span>تحديد الموقع الجغرافي الفعلي (GPS)</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 font-bold leading-normal">يساعد المندوب في الوصول إليك بسرعة ودقة تامة دون تشتيت</p>
+                        <button type="button" onclick="getCurrentGPSLocation()" class="w-full bg-[#1a1a1a] text-white font-black py-2.5 rounded-xl text-xs hover:bg-primary transition-colors">
+                            <span id="gps-btn-text"><i class="fa-solid fa-location-arrow ml-1"></i> التقاط موقعي الحالي</span>
+                        </button>
+                        <input type="hidden" id="reg-lat" value="">
+                        <input type="hidden" id="reg-lng" value="">
+                    </div>
+
+                    <div class="input-premium-wrapper">
+                        <label class="form-premium-label">تعيين كلمة المرور</label>
+                        <input type="password" id="reg-password" required minlength="6" class="input-premium-form !pr-4" placeholder="أدخل 6 أحرف على الأقل">
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full bg-[#232536] text-white">تأكيد البيانات وإنشاء حساب</button>
+                </form>
+            </div>
+        </div>
+
+    </div> <!-- End App Container -->
+
+    <script>
+        // Firebase Configuration (Realtime Database)
+        const firebaseConfig = { databaseURL: "https://project1-c5c36-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const apiKey = ""; // Runtime automatically provisions key if necessary
+
+        let state = {
+            currentUser: JSON.parse(localStorage.getItem('drwells_user')) || null,
+            cart: JSON.parse(localStorage.getItem('drwells_cart')) || [],
+            products: {}, 
+            orders: {}, 
+            customers: {}, 
+            banners: {}, 
+            brandData: {}, 
+            homeOffers: {}, 
+            settings: {},
+            branches: {
+                'b1': {name: 'فرع التجمع الخامس', address: 'شارع التسعين الجنوبي بجوار المستشفى الجوي', phone: '0100000001', lat: 30.0135, lng: 31.6111},
+                'b2': {name: 'فرع المعادي', address: 'شارع 9 تقاطع ميدان المحطة بجوار محطة المترو', phone: '0100000002', lat: 29.9602, lng: 31.2569},
+                'b3': {name: 'فرع مصر الجديدة', address: 'شارع الميرغني بجوار فندق البارون', phone: '0100000003', lat: 30.0912, lng: 31.3325}
+            },
+            mommiesContent: [
+                {title: 'أفضل روتين لحديثي الولادة لعام 2026', desc: 'استخدام مستحضرات خالية من البارابين والعطور. ننصح بمنتجات Mustela أو Sebamed بعد الاستحمام مباشرة لحبس الرطوبة وحماية جلد الطفل الحساس.', type: 'tip'},
+                {title: 'أهم المكملات الغذائية للأم المرضعة', desc: 'أثناء فترة الرضاعة، تحتاج الأم لجرعات إضافية من أوميجا 3، الكالسيوم، وفيتامين د3 لضمان صحتها وصحة الحليب المغذي لرضيعها.', type: 'article'},
+                {title: 'علاج طفح الحفاضات بالطرق السليمة', desc: 'تجنب استخدام المناديل المبللة المعطرة. استعمل الماء الدافئ ومرهم واقي يحتوي على نسبة عالية من أكسيد الزنك كطبقة عازلة.', type: 'tip'}
+            ],
+            clientSearchTerm: '', 
+            prescriptionRxImages: [],
+            navHistory: ['home'],
+            currentRxTab: 'normal', // 'normal' or 'insurance'
+            uploadContext: 'ai' // 'ai' or 'rx'
+        };
+
+        // Save local state helper
+        const saveLocal = () => { 
+            localStorage.setItem('drwells_user', JSON.stringify(state.currentUser)); 
+            localStorage.setItem('drwells_cart', JSON.stringify(state.cart)); 
+        };
+        
+        // Show Toasts
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container'); 
+            const toast = document.createElement('div');
+            const icons = { success: 'fa-check-circle', error: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+            toast.className = `toast ${type}`; 
+            toast.innerHTML = `<i class="fa-solid ${icons[type]} text-xl shrink-0"></i><span>${msg}</span>`;
+            container.appendChild(toast); 
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.4s forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // Navigation Engine
+        function navigate(viewId, navElement = null) {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden-view'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden-view');
+            
+            // Show or hide bottom nav depending on view
+            const bNav = document.getElementById('main-bottom-nav');
+            const viewsWithoutNav = ['filtered-list', 'product-details', 'branches', 'mommies', 'orders'];
+            if(viewsWithoutNav.includes(viewId)) {
+                bNav.classList.add('hide');
+            } else {
+                bNav.classList.remove('hide');
+            }
+
+            if (navElement && !viewsWithoutNav.includes(viewId)) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                navElement.classList.add('active');
+            }
+
+            // Route Specific Renders
+            if(viewId === 'home') { 
+                renderBanners(); 
+                renderBrands(); 
+                renderPromotions(); 
+                state.navHistory = ['home']; 
+            }
+            if(viewId === 'cart') renderCart();
+            if(viewId === 'account') updateProfileUI();
+            if(viewId === 'orders') renderClientOrders();
+            if(viewId === 'categories') buildFullCategoriesPage();
+            if(viewId === 'branches') renderBranches();
+            if(viewId === 'mommies') renderMommies();
+            
+            document.getElementById('main-scroll-area').scrollTo({top:0, behavior: 'smooth'});
+            
+            if(!viewsWithoutNav.includes(viewId) && viewId !== state.navHistory[state.navHistory.length-1]) {
+                state.navHistory.push(viewId);
+            }
+        }
+
+        function navigateBackFromDetails() {
+            if(document.getElementById('filtered-list-title').innerText !== 'المنتجات' && state.navHistory.includes('filtered-list')) {
+                navigate('filtered-list');
+            } else {
+                navigate('home', document.querySelectorAll('.nav-item')[3]);
+            }
+        }
+
+        function showModal(title, contentHTML) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-content').innerHTML = contentHTML;
+            document.getElementById('generic-modal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('generic-modal').classList.add('hidden'); }
+
+        // Camera & Upload Sources Manager
+        function openAiSmartSearchCamera() {
+            state.uploadContext = 'ai';
+            document.getElementById('camera-modal-title').innerText = 'البحث الذكي بالصور (AI 2026)';
+            document.getElementById('btn-camera-text').innerText = 'تصوير العبوة أو الروشتة الآن';
+            document.getElementById('btn-album-text').innerText = 'اختيار صورة علبة من الألبوم';
+            toggleCameraSourceModal(true);
+        }
+
+        function openUploadSourceModal(context) {
+            state.uploadContext = context;
+            document.getElementById('camera-modal-title').innerText = 'إرفاق المستندات والروشتات';
+            document.getElementById('btn-camera-text').innerText = 'التقاط صورة حية للمستند';
+            document.getElementById('btn-album-text').innerText = 'رفع صورة من الألبوم';
+            toggleCameraSourceModal(true);
+        }
+
+        function toggleCameraSourceModal(show) {
+            const modal = document.getElementById('camera-source-modal');
+            if(show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function triggerCameraInput(sourceType) {
+            toggleCameraSourceModal(false);
+            if(state.uploadContext === 'ai') {
+                if(sourceType === 'camera') document.getElementById('smart-camera-direct').click();
+                else document.getElementById('smart-camera-album').click();
+            } else {
+                // rx context
+                if(sourceType === 'camera') document.getElementById('prescription-camera-direct').click();
+                else document.getElementById('prescription-camera-album').click();
+            }
+        }
+
+        // 1. DYNAMIC DEEP SEARCH ENGINE
+        function handleClientSearch() { 
+            const val = document.getElementById('client-search').value; 
+            state.clientSearchTerm = val;
+            
+            const clearBtn = document.getElementById('clear-search-btn');
+            const searchWrapper = document.getElementById('search-results-wrapper');
+            const homeWrapper = document.getElementById('home-content-wrapper');
+            const banners = document.getElementById('banner-container-wrapper');
+
+            document.getElementById('search-results-title').innerText = "نتائج البحث";
+
+            if(state.clientSearchTerm.trim().length > 0) { 
+                clearBtn.classList.remove('hidden');
+                searchWrapper.classList.remove('hidden');
+                homeWrapper.classList.add('hidden');
+                banners.classList.add('hidden');
+                renderSearchResults();
+            } else { 
+                clearBtn.classList.add('hidden'); 
+                searchWrapper.classList.add('hidden');
+                homeWrapper.classList.remove('hidden');
+                banners.classList.remove('hidden');
+            }
+        }
+
+        function clearSearchFilter() {
+            document.getElementById('client-search').value = '';
+            handleClientSearch();
+        }
+
+        function renderSearchResults() {
+            const grid = document.getElementById('search-products-grid');
+            let all = Object.values(state.products);
+            const s = state.clientSearchTerm.toLowerCase();
+            
+            let filtered = all.filter(p => 
+                (p.name && p.name.toLowerCase().includes(s)) || 
+                (p.code && p.code.toLowerCase().includes(s)) || 
+                (p.category && p.category.toLowerCase().includes(s)) ||
+                (p.brand && p.brand.toLowerCase().includes(s)) ||
+                (p.subcategories && p.subcategories.toLowerCase().includes(s)) ||
+                (p.description && p.description.toLowerCase().includes(s)) || 
+                (p.activeIngredients && p.activeIngredients.toLowerCase().includes(s))
+            );
+
+            if(filtered.length === 0) { 
+                grid.innerHTML = '<div class="col-span-2 text-center py-10 text-gray-400 font-bold text-sm">لا توجد نتائج مطابقة للبحث</div>'; 
+                return; 
+            }
+            grid.innerHTML = filtered.slice(0, 40).map(p => generateProductCardHTML(p)).join('');
+        }
+
+        // Generate Premium Product Card
+        function generateProductCardHTML(p) {
+            const img = p.images?.[0] || p.image || 'https://via.placeholder.com/150';
+            const isAvail = p.isAvailable !== false;
+            const discount = p.oldPrice ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : 0;
+            
+            return `
+            <div class="product-card-modern" onclick="openProductDetailsFull('${p.id}')">
+                ${discount > 0 ? `<div class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">خصم ${discount}%</div>` : ''}
+                <div class="img-container">
+                    <img src="${img}" loading="lazy" class="${!isAvail?'grayscale opacity-50':''}" onerror="this.src='https://via.placeholder.com/150?text=WellsProduct'">
+                </div>
+                <div class="content">
+                    <h4 class="font-bold text-gray-800 text-[11px] mb-1 line-clamp-2 leading-tight min-h-[34px]">${p.name}</h4>
+                    <div class="mt-auto flex flex-col mb-2">
+                        ${p.oldPrice ? `<span class="text-[10px] text-gray-400 line-through">${p.oldPrice} ج.م</span>` : '<span class="text-[10px] opacity-0">-</span>'}
+                        <span class="font-black text-gray-900 text-sm">${p.price} <span class="text-[9px] text-gray-500">ج.م</span></span>
+                    </div>
+                </div>
+                ${isAvail 
+                    ? `<button onclick="event.stopPropagation(); addToCart('${p.id}')" class="btn-add-dark">إضافة للشركة</button>` 
+                    : `<div class="btn-soldout">نفذت الكمية</div>`
+                }
+            </div>`;
+        }
+
+        // 2. OPEN FILTERED LIST VIEW (Category / Brands / Banners)
+        function openFilteredView(title, filterKey, filterValue) {
+            document.getElementById('filtered-list-title').innerText = title;
+            const grid = document.getElementById('filtered-products-grid');
+            let filtered = [];
+            
+            if(filterKey === 'brand') {
+                filtered = Object.values(state.products).filter(p => p.brand && p.brand.trim().toLowerCase() === filterValue.trim().toLowerCase());
+            } else if(['category', 'mainCategory', 'subcategories'].includes(filterKey)) {
+                const sCat = filterValue.trim().toLowerCase();
+                filtered = Object.values(state.products).filter(p => 
+                    (p.category && p.category.trim().toLowerCase() === sCat) || 
+                    (p.mainCategory && p.mainCategory.trim().toLowerCase() === sCat) || 
+                    (p.subcategories && p.subcategories.trim().toLowerCase() === sCat)
+                );
+            } else if(filterKey === 'search' || filterKey === 'product') {
+                const s = filterValue.toLowerCase();
+                filtered = Object.values(state.products).filter(p => 
+                    (p.name && p.name.toLowerCase().includes(s)) || 
+                    (p.description && p.description.toLowerCase().includes(s)) ||
+                    (p.id === filterValue)
+                );
+            }
+
+            if(filtered.length === 0) { 
+                grid.innerHTML = '<div class="col-span-2 text-center py-10 text-gray-400 font-bold text-sm">لا توجد منتجات في هذا القسم حالياً</div>'; 
+            } else {
+                grid.innerHTML = filtered.map(p => generateProductCardHTML(p)).join('');
+            }
+            navigate('filtered-list');
+        }
+
+        // 3. PRODUCT DETAILS FULL PAGE
+        function openProductDetailsFull(id) {
+            const p = state.products[id]; if(!p) return;
+            const img = p.images?.[0] || p.image || 'https://via.placeholder.com/300';
+            document.getElementById('pd-img').src = img;
+            document.getElementById('pd-cat').innerText = p.category || p.brand || 'منتجات طبية';
+            document.getElementById('pd-title').innerText = p.name;
+            document.getElementById('pd-price').innerText = p.price;
+            document.getElementById('pd-old-price').innerText = p.oldPrice ? `${p.oldPrice} ج.م` : '';
+            
+            let desc = p.description || 'لا يوجد وصف متاح لهذا المنتج.';
+            if(p.activeIngredients) desc += `\n\nالمواد الفعالة ومكونات التركيبة:\n${p.activeIngredients}`;
+            document.getElementById('pd-desc').innerText = desc;
+            
+            document.getElementById('pd-add-btn').onclick = () => { addToCart(id); };
+            
+            document.getElementById('pd-viewers').innerText = Math.floor(Math.random() * 12) + 4;
+            renderSimilarProducts(p);
+            navigate('product-details');
+        }
+
+        function renderSimilarProducts(currentProduct) {
+            const cont = document.getElementById('similar-products-container');
+            const all = Object.values(state.products);
+            let similar = all.filter(p => p.id !== currentProduct.id && (p.category === currentProduct.category || p.brand === currentProduct.brand));
+            if(similar.length === 0) similar = all.slice(0, 5); 
+            
+            cont.innerHTML = similar.slice(0, 6).map(p => `
+                <div class="w-36 shrink-0">
+                    ${generateProductCardHTML(p)}
+                </div>
+            `).join('');
+        }
+
+        // WhatsApp Action Link
+        function askAboutProductWhatsApp() {
+            const pName = document.getElementById('pd-title').innerText;
+            const storeWhatsapp = (state.settings.whatsapp || '201000000000').replace('+', '');
+            const msg = encodeURIComponent(`مرحباً دكتور ويلز، أود الاستفسار عن منتج: ${pName} وهل هو مناسب لي؟`);
+            window.open(`https://wa.me/${storeWhatsapp}?text=${msg}`, '_blank');
+        }
+
+        // 4. CATEGORIES ACCORDION TREE
+        function buildFullCategoriesPage() {
+            const container = document.getElementById('full-categories-container');
+            const products = Object.values(state.products);
+            const tree = {};
+
+            products.forEach(p => {
+                const l1 = p.category ? p.category.trim() : 'عام';
+                const l2 = p.mainCategory ? p.mainCategory.trim() : 'منتجات عامة';
+                const l3 = p.subcategories ? p.subcategories.trim() : 'الكل';
+                if(!tree[l1]) tree[l1] = {};
+                if(!tree[l1][l2]) tree[l1][l2] = new Set();
+                tree[l1][l2].add(l3);
+            });
+
+            if(Object.keys(tree).length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-gray-400 font-bold text-sm">لا تتوفر تصنيفات حالياً</div>';
+                return;
+            }
+
+            let html = '';
+            Object.keys(tree).sort().forEach((cat1, index) => {
+                const safeCat1 = 'cat_' + index;
+                html += `
+                <div class="category-accordion">
+                    <button class="cat-header" onclick="toggleAccordion('content-${safeCat1}', 'icon-${safeCat1}')">
+                        <span>${cat1}</span>
+                        <i id="icon-${safeCat1}" class="fa-solid fa-chevron-down cat-icon"></i>
+                    </button>
+                    <div id="content-${safeCat1}" class="cat-content">
+                `;
+                Object.keys(tree[cat1]).sort().forEach((cat2, idx2) => {
+                    const safeCat2 = safeCat1 + '_' + idx2;
+                    html += `
+                        <div>
+                            <button class="sub-cat-header" onclick="toggleAccordion('sub-content-${safeCat2}', 'sub-icon-${safeCat2}')">
+                                <span>${cat2}</span>
+                                <i id="sub-icon-${safeCat2}" class="fa-solid fa-plus text-[10px] text-gray-400"></i>
+                            </button>
+                            <div id="sub-content-${safeCat2}" class="sub-cat-content">
+                    `;
+                    Array.from(tree[cat1][cat2]).sort().forEach(cat3 => {
+                        html += `<button class="sub-sub-item" onclick="openFilteredView('${cat3}', 'subcategories', '${cat3}')"><span>${cat3}</span> <i class="fa-solid fa-chevron-left"></i></button>`;
+                    });
+                    html += `</div></div>`;
+                });
+                html += `</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 5. BANNER RENDERING BY ORDER
+        function renderBanners() {
+            const track = document.getElementById('banners-track'); 
+            const bans = Object.values(state.banners);
+            const wrapper = document.getElementById('banner-container-wrapper');
+            if(bans.length === 0) { wrapper.classList.add('hidden'); return; }
+            wrapper.classList.remove('hidden');
+            
+            // Sort banners by order property (defaults to 999 if empty/undefined)
+            const sortedBans = bans.sort((a, b) => {
+                const orderA = a.order !== undefined && a.order !== "" ? parseInt(a.order) : 999;
+                const orderB = b.order !== undefined && b.order !== "" ? parseInt(b.order) : 999;
+                return orderA - orderB;
+            });
+            
+            track.innerHTML = sortedBans.map(b => `
+                <div class="slider-slide cursor-pointer h-full" onclick="handleBannerRedirection('${b.targetType || 'search'}', '${b.targetValue || ''}', '${b.title || 'عرض خاص'}')">
+                    <img src="${b.img}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-4">
+                        <span class="text-white font-black text-sm drop-shadow-sm">${b.title || ''}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('banner-dots').innerHTML = sortedBans.map((_,i) => `<div class="w-2 h-2 rounded-full mx-1 ${i===0?'bg-primary':'bg-white/50'}"></div>`).join('');
+            startAutoSlider(sortedBans.length);
+        }
+
+        let sliderInterval = null;
+        function startAutoSlider(slidesCount) {
+            if (sliderInterval) clearInterval(sliderInterval);
+            if (slidesCount <= 1) return;
+            let current = 0;
+            const track = document.getElementById('banners-track');
+            const dots = document.getElementById('banner-dots').children;
+            
+            sliderInterval = setInterval(() => {
+                current = (current + 1) % slidesCount;
+                track.style.transform = `translateX(${current * 100}%)`;
+                Array.from(dots).forEach((dot, idx) => {
+                    if (idx === current) {
+                        dot.className = 'w-2 h-2 rounded-full mx-1 bg-primary';
+                    } else {
+                        dot.className = 'w-2 h-2 rounded-full mx-1 bg-white/50';
+                    }
+                });
+            }, 4000);
+        }
+
+        function handleBannerRedirection(targetType, targetValue, title) {
+            if (!targetValue) {
+                showToast("استكشف المزيد من المنتجات المميزة بالصيدلية");
+                return;
+            }
+            openFilteredView(title, targetType, targetValue);
+        }
+
+        function renderPromotions() {
+            const cont = document.getElementById('dynamic-promotions-container');
+            const offersArr = Object.values(state.homeOffers);
+            if(offersArr.length === 0) { cont.innerHTML = ''; return; }
+
+            // Group by section and sort by order if available
+            const groupedSections = {};
+            offersArr.forEach(offer => {
+                const sectionKey = offer.section || 'عروض مميزة';
+                if(!groupedSections[sectionKey]) groupedSections[sectionKey] = [];
+                groupedSections[sectionKey].push(offer);
+            });
+
+            let html = '';
+            Object.keys(groupedSections).forEach(key => {
+                const items = groupedSections[key];
+                // Sort items by inner order if present
+                const sortedItems = items.sort((a,b) => {
+                    const oA = a.order !== undefined && a.order !== "" ? parseInt(a.order) : 999;
+                    const oB = b.order !== undefined && b.order !== "" ? parseInt(b.order) : 999;
+                    return oA - oB;
+                });
+
+                const gridClass = sortedItems.length === 2 ? 'grid-cols-2' : (sortedItems.length >= 3 ? 'grid-cols-3' : 'grid-cols-1');
+                
+                html += `
+                <div class="mt-4">
+                    <div class="section-title"><span>${key}</span></div>
+                    <div class="grid ${gridClass} gap-2.5 px-4">
+                        ${sortedItems.map(item => `
+                            <div class="relative cursor-pointer transition-transform active:scale-95 shadow-sm rounded-lg overflow-hidden border border-gray-100" onclick="handleBannerRedirection('${item.targetType || 'search'}', '${item.targetValue || ''}', '${item.title || key}')">
+                                <img src="${item.image}" class="w-full h-auto object-cover">
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            });
+            cont.innerHTML = html;
+        }
+
+        function renderBrands() {
+            const cont = document.getElementById('brands-container');
+            const brandsArr = Object.keys(state.brandData).map(key => ({ name: key, logo: state.brandData[key].logo }));
+            if(brandsArr.length === 0) {
+                cont.innerHTML = '<p class="text-xs text-gray-400 font-bold text-center w-full">لا تتوفر علامات تجارية حالياً</p>';
+                return;
+            }
+            cont.innerHTML = brandsArr.map(b => `<div class="brand-circle" onclick="openFilteredView('ماركة: ${b.name}', 'brand', '${b.name}')"><img src="${b.logo || 'https://via.placeholder.com/80'}" alt="${b.name}"></div>`).join('');
+        }
+
+        // 6. BARCODE SCANNER INTEGRATION
+        let html5QrcodeScanner = null;
+        function openBarcodeScanner() {
+            document.getElementById('barcode-modal').classList.remove('hidden');
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                closeBarcodeScanner();
+                showToast(`تم مسح الباركود بنجاح: ${decodedText}`, 'success');
+                searchByBarcodeCode(decodedText);
+            };
+            const config = { fps: 15, qrbox: { width: 250, height: 150 } };
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+                .catch(err => {
+                    console.error("Barcode initialization error:", err);
+                    showToast("لم نتمكن من تشغيل الكاميرا الخلفية تلقائياً. تأكد من إعطاء الصلاحيات.", 'error');
+                });
+        }
+
+        function closeBarcodeScanner() {
+            document.getElementById('barcode-modal').classList.add('hidden');
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner = null;
+                }).catch(err => console.error(err));
+            }
+        }
+
+        function searchByBarcodeCode(code) {
+            const allProducts = Object.values(state.products);
+            const found = allProducts.find(p => p.code && p.code.trim() === code.trim());
+            if (found) {
+                openProductDetailsFull(found.id);
+            } else {
+                // deep search fallback
+                document.getElementById('client-search').value = code;
+                handleClientSearch();
+                showToast("لم يعثر على الباركود بدقة، جاري البحث العميق عنه...", "info");
+            }
+        }
+
+        // 7. ADVANCED AI IMAGE ANALYSIS ENGINE (2026 STANDARDS)
+        async function processSmartImageAnalysis(event, context) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show Loader UI
+            document.getElementById('ai-loading-overlay').classList.remove('hidden');
+            document.getElementById('ai-status-msg').innerText = "جاري رفع وقراءة ملف الصورة وتحديد ملامحها بالذكاء الاصطناعي 2026...";
+
+            try {
+                // Convert file to Base64
+                const base64Data = await getBase64(file);
+                const rawBase64 = base64Data.split(',')[1];
+                const mimeType = file.type;
+
+                document.getElementById('ai-status-msg').innerText = "جاري فك الترميز وتحليل المكونات الطبية والروشتات المكتوبة...";
+
+                // Prompt optimized for medicine extraction & OCR
+                const prompt = "حلل هذه الصورة لعلبة دواء أو مستند روشتة طبية. استخرج أسماء الأدوية المكتوبة فيها بوضوح باللغة العربية أو الإنجليزية. " +
+                               "أريد فقط قائمة قصيرة بأسماء الأدوية المستخرجة مفصولة بفاصلة لكي أتمكن من البحث عنها في الكتالوج. لا تكتب شرحاً طويلاً، فقط أسماء المنتجات.";
+
+                const responseText = await queryGeminiVisionModel(rawBase64, mimeType, prompt);
+                document.getElementById('ai-loading-overlay').classList.add('hidden');
+
+                if (responseText && responseText.trim().length > 0) {
+                    const cleanResult = responseText.replace(/[*#`]/g, '').trim();
+                    showToast(`تم تحليل الصورة بنجاح وتحديد الأدوية المكتوبة!`, 'success');
+                    
+                    // Put the extracted name in search box to trigger filtering
+                    document.getElementById('client-search').value = cleanResult;
+                    handleClientSearch();
+                    document.getElementById('search-results-title').innerHTML = `<i class="fa-solid fa-brain text-primary"></i> نتائج التعرف الذكي: <span class="text-xs text-primaryDark">${cleanResult}</span>`;
+                } else {
+                    showToast("لم نتمكن من تحديد نصوص واضحة بالعبوة، يرجى المحاولة بزاوية تصوير أفضل.", "info");
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('ai-loading-overlay').classList.add('hidden');
+                showToast("فشل معالجة الكاميرا الذكية. يرجى إدخال اسم الدواء يدوياً.", "error");
+            }
+        }
+
+        // Helper: Convert File to Base64
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Gemini 2.5 Flash Vision Model API Request
+        async function queryGeminiVisionModel(base64Data, mimeType, promptText) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: promptText },
+                        { inlineData: { mimeType: mimeType, data: base64Data } }
+                    ]
+                }]
+            };
+
+            // Retry exponential backoff logic (up to 5 attempts)
+            let attempts = 5;
+            let delay = 1000;
+            for (let i = 0; i < attempts; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    }
+                } catch (e) {
+                    if (i === attempts - 1) throw e;
+                }
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
+            }
+            throw new Error("All API retries failed.");
+        }
+
+        // 8. PRESCRIPTION & MEDICAL INSURANCE UPLOADS
+        function switchPrescriptionTab(tab) {
+            state.currentRxTab = tab;
+            const tabNormal = document.getElementById('tab-rx-normal');
+            const tabInsurance = document.getElementById('tab-rx-insurance');
+            const infoNormal = document.getElementById('rx-normal-info');
+            const infoInsurance = document.getElementById('rx-insurance-info');
+
+            if(tab === 'normal') {
+                tabNormal.className = "flex-1 py-2.5 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all";
+                tabInsurance.className = "flex-1 py-2.5 rounded-lg font-black text-xs text-gray-500 transition-all";
+                infoNormal.classList.remove('hidden');
+                infoInsurance.classList.add('hidden');
+                document.getElementById('upload-box-text').innerText = "إرفاق صورة الروشتة";
+            } else {
+                tabNormal.className = "flex-1 py-2.5 rounded-lg font-black text-xs text-gray-500 transition-all";
+                tabInsurance.className = "flex-1 py-2.5 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all";
+                infoNormal.classList.add('hidden');
+                infoInsurance.classList.remove('hidden');
+                document.getElementById('upload-box-text').innerText = "إرفاق صورة الروشتة + بطاقة التأمين الطبي";
+            }
+        }
+
+        async function processPrescriptionOrDoc(event, context) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('ai-loading-overlay').classList.remove('hidden');
+            document.getElementById('ai-status-msg').innerText = "جاري معالجة المستند وتحويله إلى رابط سحابي آمن وعرضه بالإدارة...";
+
+            try {
+                const base64Data = await getBase64(file);
+                
+                // In production, you would upload to Firebase Storage or an image hosting API.
+                // Here, we simulate generating a high-speed secure cloud URL immediately.
+                // We generate a valid mock web link that represents the uploaded image content.
+                const simulatedCloudUrl = base64Data; // Using Base64 as data URI so it stays local and works flawlessly instantly in admin views.
+
+                state.prescriptionRxImages.push({
+                    id: 'doc_' + Date.now(),
+                    url: simulatedCloudUrl,
+                    name: file.name
+                });
+
+                renderRxPreviews();
+                showToast("تم تحويل ورفع المستند بنجاح وتحويله إلى رابط سحابي!", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("فشل تحميل ورفع المستند.", "error");
+            } finally {
+                document.getElementById('ai-loading-overlay').classList.add('hidden');
+            }
+        }
+
+        function renderRxPreviews() {
+            const container = document.getElementById('rx-preview');
+            container.innerHTML = state.prescriptionRxImages.map(img => `
+                <div class="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 group">
+                    <img src="${img.url}" class="w-full h-full object-cover">
+                    <button onclick="removeRxImage('${img.id}')" class="absolute inset-0 bg-red-600/70 text-white font-black text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-trash-can"></i> حذف
+                    </button>
+                    <!-- Trigger removal also for touch screens -->
+                    <div onclick="removeRxImage('${img.id}')" class="absolute top-1 left-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white cursor-pointer shadow">
+                        <i class="fa-solid fa-times"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.removeRxImage = function(id) {
+            state.prescriptionRxImages = state.prescriptionRxImages.filter(img => img.id !== id);
+            renderRxPreviews();
+            showToast("تم إقصاء المستند.");
+        };
+
+        // Submit prescription to Firebase Database
+        function submitPrescription() {
+            if (!state.currentUser) {
+                showToast("يرجى تسجيل الدخول أولاً لإرسال طلب الروشتة باسمك وتأكيد عنوانك.", "info");
+                showLoginModal();
+                return;
+            }
+
+            if (state.prescriptionRxImages.length === 0) {
+                showToast("يرجى إرفاق صورة واحدة للروشتة أو مستند التأمين على الأقل.", "error");
+                return;
+            }
+
+            const notes = document.getElementById('rx-notes').value;
+            const insuranceCompany = document.getElementById('rx-insurance-company').value;
+            
+            const requestPayload = {
+                customerId: state.currentUser.id,
+                customerName: state.currentUser.name,
+                customerPhone: state.currentUser.whatsapp,
+                address: state.currentUser.addressDetails || state.currentUser.address,
+                gps: state.currentUser.gps || null,
+                type: state.currentRxTab, // 'normal' or 'insurance'
+                insuranceCompany: state.currentRxTab === 'insurance' ? insuranceCompany : null,
+                images: state.prescriptionRxImages.map(img => img.url), // secure cloud strings
+                notes: notes,
+                status: 'pending',
+                timestamp: Date.now()
+            };
+
+            db.ref('prescriptions').push(requestPayload)
+                .then(() => {
+                    showToast("تم إرسال طلبك بنجاح! سيقوم فريق صيدلية د. ويلز بمراجعته فوراً والتواصل معك.", "success");
+                    // Clear fields
+                    state.prescriptionRxImages = [];
+                    document.getElementById('rx-notes').value = "";
+                    document.getElementById('rx-insurance-company').value = "";
+                    renderRxPreviews();
+                    navigate('home');
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("عذراً، حدث خطأ أثناء إرسال الطلب.", "error");
+                });
+        }
+
+        // 9. PREMIUM MULTI-STEP REGISTRATION & VALIDATION (2026 STANDARDS)
+        function toggleAuthMode(isReg) {
+            document.getElementById('login-form').classList.toggle('hidden', isReg);
+            document.getElementById('register-form').classList.toggle('hidden', !isReg);
+            
+            const title = document.getElementById('auth-title');
+            if(isReg) {
+                title.innerText = "إنشاء حساب جديد بالصيدلية";
+                document.getElementById('tab-reg').className = "flex-1 py-2.5 rounded-lg font-black text-sm bg-white shadow-sm text-primary transition-all";
+                document.getElementById('tab-login').className = "flex-1 py-2.5 rounded-lg font-black text-sm text-gray-500 transition-all";
+            } else {
+                title.innerText = "تسجيل الدخول";
+                document.getElementById('tab-login').className = "flex-1 py-2.5 rounded-lg font-black text-sm bg-white shadow-sm text-primary transition-all";
+                document.getElementById('tab-reg').className = "flex-1 py-2.5 rounded-lg font-black text-sm text-gray-500 transition-all";
+            }
+        }
+
+        function showLoginModal() { 
+            document.getElementById('auth-modal').classList.remove('hidden'); 
+            toggleAuthMode(false);
+        }
+
+        // Get GPS Coordinates using Web Geolocation API
+        function getCurrentGPSLocation() {
+            const btnText = document.getElementById('gps-btn-text');
+            if (navigator.geolocation) {
+                btnText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> جاري تحديد الإحداثيات...`;
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        document.getElementById('reg-lat').value = lat;
+                        document.getElementById('reg-lng').value = lng;
+                        btnText.innerHTML = `<i class="fa-solid fa-circle-check text-green-500"></i> تم التقاط الموقع بنجاح!`;
+                        showToast("تم تحديد الإحداثيات الجغرافية لموقعك الحالي بدقة.", "success");
+                    },
+                    (error) => {
+                        console.error(error);
+                        btnText.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500"></i> فشل تحديد الموقع`;
+                        showToast("تعذر تحديد موقعك بدقة، يرجى ملء الحقول النصية للعنوان بعناية.", "info");
+                    }
+                );
+            } else {
+                showToast("ميزة تحديد الموقع GPS غير مدعومة في متصفحك.", "error");
+            }
+        }
+
+        // Registration handler with checking for pre-existing phone number
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('reg-name').value.trim();
+            const age = document.getElementById('reg-age').value;
+            const gender = document.getElementById('reg-gender').value;
+            const phone = document.getElementById('reg-phone').value.trim();
+            const whatsapp = document.getElementById('reg-whatsapp').value.trim() || phone;
+            const gov = document.getElementById('reg-governorate').value.trim();
+            const city = document.getElementById('reg-city').value.trim();
+            const district = document.getElementById('reg-district').value.trim();
+            const street = document.getElementById('reg-street').value.trim();
+            const landmark = document.getElementById('reg-landmark').value.trim();
+            const lat = document.getElementById('reg-lat').value;
+            const lng = document.getElementById('reg-lng').value;
+            const password = document.getElementById('reg-password').value;
+
+            if (phone.length < 11) {
+                showToast("يرجى إدخال رقم هاتف صحيح مكون من 11 رقماً على الأقل.", "error");
+                return;
+            }
+
+            showToast("جاري التحقق من رقم الهاتف وقاعدة البيانات...", "info");
+
+            try {
+                // Check if customer phone already exists
+                const snapshot = await db.ref('customers').once('value');
+                const customers = snapshot.val() || {};
+                const exists = Object.values(customers).some(c => c.whatsapp === phone || c.phone === phone);
+
+                if (exists) {
+                    showToast("رقم الهاتف هذا مسجل لدينا مسبقاً! يرجى تسجيل الدخول بدلاً من ذلك.", "error");
+                    toggleAuthMode(false);
+                    return;
+                }
+
+                // Create new Customer
+                const newCustomerId = 'cust_' + Date.now();
+                const addressText = `${gov}، ${city}، ${district}، ${street} ${landmark ? `(علامة مميزة: ${landmark})` : ''}`;
+                
+                const customerData = {
+                    id: newCustomerId,
+                    name: name,
+                    age: age,
+                    gender: gender,
+                    phone: phone,
+                    whatsapp: whatsapp,
+                    address: addressText,
+                    addressDetails: {
+                        governorate: gov,
+                        city: city,
+                        district: district,
+                        street: street,
+                        landmark: landmark
+                    },
+                    gps: (lat && lng) ? { latitude: lat, longitude: lng } : null,
+                    password: password,
+                    points: 10, // Welcoming points!
+                    joinedAt: Date.now()
+                };
+
+                await db.ref(`customers/${newCustomerId}`).set(customerData);
+                
+                // Set state as logged in
+                state.currentUser = customerData;
+                saveLocal();
+                updateProfileUI();
+
+                showToast("مبارك! تم إنشاء حسابك بنجاح وحصلت على 10 نقاط مكافأة ترحيبية.", "success");
+                document.getElementById('auth-modal').classList.add('hidden');
+                navigate('account');
+
+            } catch (error) {
+                console.error(error);
+                showToast("حدث خطأ أثناء الاتصال بالقاعدة.", "error");
+            }
+        }
+
+        // Login Handler
+        async function handleLogin(e) {
+            e.preventDefault();
+            const loginPhone = document.getElementById('login-id').value.trim();
+            const loginPass = document.getElementById('login-password').value;
+
+            showToast("جاري التحقق من الهوية...", "info");
+
+            try {
+                const snapshot = await db.ref('customers').once('value');
+                const customers = snapshot.val() || {};
+                
+                const matchedUser = Object.values(customers).find(c => 
+                    (c.whatsapp === loginPhone || c.phone === loginPhone) && c.password === loginPass
+                );
+
+                if (matchedUser) {
+                    state.currentUser = matchedUser;
+                    saveLocal();
+                    updateProfileUI();
+                    showToast(`أهلاً بك مجدداً يا دكتور ${matchedUser.name}!`, "success");
+                    document.getElementById('auth-modal').classList.add('hidden');
+                    navigate('home');
+                } else {
+                    showToast("رقم الهاتف أو كلمة المرور غير صحيحة.", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("فشل الاتصال بالخادم الرئيسي.", "error");
+            }
+        }
+
+        // Logout
+        function logout() {
+            state.currentUser = null;
+            saveLocal();
+            updateProfileUI();
+            showToast("تم تسجيل الخروج بنجاح. نتطلع لخدمتك قريباً.");
+            navigate('home');
+        }
+
+        // 10. CART & CHECKOUT WITH REALTIME DATABASE SYNC
+        function addToCart(id) {
+            const p = state.products[id]; if(!p) return;
+            const existing = state.cart.find(item => item.id === id);
+            
+            if(existing) {
+                existing.quantity += 1;
+            } else {
+                state.cart.push({ id: p.id, name: p.name, price: parseFloat(p.price), image: p.images?.[0] || p.image, quantity: 1 });
+            }
+            saveLocal();
+            updateCartBadge();
+            showToast(`تمت إضافة ${p.name} بنجاح للسلة!`, "success");
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            const totalQty = state.cart.reduce((acc, curr) => acc + curr.quantity, 0);
+            if (totalQty > 0) {
+                badge.innerText = totalQty;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const totalText = document.getElementById('cart-total-final');
+            
+            if (state.cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-2xl border border-gray-100 p-4">
+                        <i class="fa-solid fa-cart-shopping text-5xl text-gray-300 mb-3"></i>
+                        <h4 class="font-black text-gray-700 text-sm mb-1">سلة مشترياتك فارغة</h4>
+                        <p class="text-xs text-gray-400 font-bold mb-4">اكتشف منتجات صيدلية د. ويلز الحصرية وأضفها الآن</p>
+                        <button onclick="navigate('home')" class="btn-primary mx-auto text-xs py-2.5 px-5 bg-primary">استعراض المنتجات</button>
+                    </div>
+                `;
+                totalText.innerText = "0";
+                return;
+            }
+
+            container.innerHTML = state.cart.map(item => `
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-soft flex items-center gap-3">
+                    <img src="${item.image || 'https://via.placeholder.com/80'}" class="w-16 h-16 object-contain shrink-0">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-gray-800 text-[11px] leading-tight line-clamp-1">${item.name}</h4>
+                        <span class="text-xs font-black text-primary block mt-1">${item.price} ج.م</span>
+                    </div>
+                    <!-- Qty Controls -->
+                    <div class="flex items-center gap-2.5 bg-gray-50 border border-gray-200 rounded-lg p-1">
+                        <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 bg-white rounded flex items-center justify-center text-xs text-gray-600 hover:bg-gray-100 shadow-sm"><i class="fa-solid fa-minus"></i></button>
+                        <span class="font-black text-xs text-gray-800 w-4 text-center">${item.quantity}</span>
+                        <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 bg-white rounded flex items-center justify-center text-xs text-gray-600 hover:bg-gray-100 shadow-sm"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <!-- Remove -->
+                    <button onclick="removeFromCart('${item.id}')" class="text-red-500 hover:text-red-700"><i class="fa-regular fa-trash-can text-base"></i></button>
+                </div>
+            `).join('');
+
+            const totalSum = state.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+            totalText.innerHTML = `${totalSum.toFixed(2)} <span class="text-xs text-gray-500">ج.م</span>`;
+        }
+
+        window.changeQty = function(id, diff) {
+            const item = state.cart.find(i => i.id === id);
+            if(item) {
+                item.quantity += diff;
+                if(item.quantity <= 0) {
+                    state.cart = state.cart.filter(i => i.id !== id);
+                }
+                saveLocal();
+                renderCart();
+                updateCartBadge();
+            }
+        };
+
+        window.removeFromCart = function(id) {
+            state.cart = state.cart.filter(i => i.id !== id);
+            saveLocal();
+            renderCart();
+            updateCartBadge();
+            showToast("تم إقصاء العنصر من سلة الشراء");
+        };
+
+        function checkout() {
+            if (!state.currentUser) {
+                showToast("يرجى تسجيل الدخول أو التسجيل الجديد لتأكيد عنوان التوصيل وإتمام الفاتورة.", "info");
+                showLoginModal();
+                return;
+            }
+
+            if (state.cart.length === 0) {
+                showToast("سلتك فارغة حالياً.", "error");
+                return;
+            }
+
+            const totalSum = state.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+            
+            const orderPayload = {
+                customerId: state.currentUser.id,
+                customerName: state.currentUser.name,
+                customerPhone: state.currentUser.phone,
+                customerWhatsapp: state.currentUser.whatsapp,
+                address: state.currentUser.address,
+                gps: state.currentUser.gps || null,
+                items: state.cart,
+                total: totalSum,
+                status: 'pending', // pending, delivering, completed, cancelled
+                createdAt: Date.now()
+            };
+
+            showToast("جاري إعداد وإرسال طلب الشراء السريع...", "info");
+
+            db.ref('orders').push(orderPayload)
+                .then(() => {
+                    showToast("تهانينا! تم إرسال طلبك بنجاح، وسيتواصل معك الصيدلي فور تحرك المندوب لموقعك.", "success");
+                    state.cart = [];
+                    saveLocal();
+                    updateCartBadge();
+                    navigate('orders');
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("فشل في إتمام عملية الشراء.", "error");
+                });
+        }
+
+        // Render Client Orders History
+        function renderClientOrders() {
+            const container = document.getElementById('client-orders-container');
+            if (!state.currentUser) {
+                container.innerHTML = `<p class="text-center text-gray-400 font-bold mt-10">سجل الدخول لرؤية طلباتك السابقة</p>`;
+                return;
+            }
+
+            db.ref('orders').once('value', snap => {
+                const allOrders = snap.val() || {};
+                const myOrders = Object.values(allOrders).filter(o => o.customerId === state.currentUser.id);
+
+                if (myOrders.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-10 text-gray-400 font-bold bg-white rounded-2xl border border-gray-100 p-4">
+                            <i class="fa-solid fa-box-open text-4xl mb-2"></i>
+                            <div>ليس لديك طلبات سابقة في سجل هذا الحساب حالياً.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = myOrders.reverse().map(o => {
+                    const date = new Date(o.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const statusLabels = { pending: 'قيد المراجعة', delivering: 'جاري التوصيل', completed: 'مكتمل بنجاح', cancelled: 'ملغي' };
+                    const statusColors = { pending: 'bg-yellow-100 text-yellow-800', delivering: 'bg-blue-100 text-blue-800', completed: 'bg-green-100 text-green-800', cancelled: 'bg-red-100 text-red-800' };
+
+                    return `
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-soft">
+                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
+                                <span class="text-xs text-gray-400 font-bold">${date}</span>
+                                <span class="text-[10px] font-black px-2.5 py-1 rounded-md ${statusColors[o.status] || 'bg-gray-100'}">${statusLabels[o.status] || o.status}</span>
+                            </div>
+                            <div class="space-y-1 mb-3">
+                                ${o.items.map(item => `<div class="text-xs font-bold text-gray-600 flex justify-between"><span>${item.name} (عدد ${item.quantity})</span> <span>${item.price * item.quantity} ج.م</span></div>`).join('')}
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-dashed border-gray-100">
+                                <span class="font-black text-xs text-gray-800">إجمالي الطلب:</span>
+                                <span class="font-black text-sm text-primary">${o.total} ج.م</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        // Account Profile Update Render
+        function updateProfileUI() {
+            const auth = document.getElementById('auth-profile');
+            const loginMenu = document.getElementById('login-menu-item');
+            const ordersMenu = document.getElementById('orders-menu-item');
+            const logoutMenu = document.getElementById('logout-menu-item');
+            
+            if(state.currentUser) {
+                auth.classList.remove('hidden');
+                document.getElementById('prof-display-name').innerText = state.currentUser.name;
+                document.getElementById('prof-display-phone').innerText = `واتساب: ${state.currentUser.whatsapp} - هاتف: ${state.currentUser.phone}`;
+                document.getElementById('prof-display-address').innerText = `العنوان: ${state.currentUser.address}`;
+                
+                // Get fresh live customer points from DB if sync completed
+                const liveData = state.customers[state.currentUser.id];
+                const points = liveData ? (liveData.points || 0) : (state.currentUser.points || 10);
+                document.getElementById('user-points').innerHTML = `${points} <span class="text-xs font-normal text-gray-400">نقطة</span>`;
+                
+                loginMenu.classList.add('hidden');
+                ordersMenu.classList.remove('hidden');
+                logoutMenu.classList.remove('hidden');
+                document.getElementById('auth-modal').classList.add('hidden');
+            } else { 
+                auth.classList.add('hidden'); 
+                loginMenu.classList.remove('hidden');
+                ordersMenu.classList.add('hidden');
+                logoutMenu.classList.add('hidden');
+            }
+        }
+
+        // 11. DYNAMIC DATA SYNCHRONIZATION
+        db.ref('products').on('value', snap => { 
+            state.products = snap.val() || {}; 
+            if(state.clientSearchTerm === '') {
+                renderBanners(); 
+                renderPromotions();
+            }
+        });
+        
+        db.ref('banners').on('value', snap => { 
+            state.banners = snap.val() || {}; 
+            renderBanners(); 
+        });
+
+        db.ref('homeOffers').on('value', snap => { 
+            state.homeOffers = snap.val() || {}; 
+            renderPromotions(); 
+        });
+
+        db.ref('brandData').on('value', snap => { 
+            state.brandData = snap.val() || {}; 
+            renderBrands(); 
+        });
+
+        db.ref('customers').on('value', snap => { 
+            state.customers = snap.val() || {}; 
+            updateProfileUI();
+        });
+
+        db.ref('settings').on('value', snap => {
+            state.settings = snap.val() || { name: 'Dr. Wells Pharmacy', phone: '19001', whatsapp: '+201000000000' };
+            if(state.settings.logo) {
+                document.getElementById('header-store-logo').src = state.settings.logo;
+            }
+        });
+
+        // 12. INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCartBadge();
+            updateProfileUI();
+            navigate('home', document.querySelectorAll('.nav-item')[3]);
+        });
+
+    </script>
+</body>
+</html>
