@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1A1A1A">
+    <title>Dr. Wells Pharmacy | تطبيق العميل الاحترافي</title>
+    
+    <!-- 🚀 Webview Performance Optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://cdn.onesignal.com">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js" defer></script>
+
+    <!-- 🔔 OneSignal SDK Integration -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function() {
+        OneSignal.init({
+          appId: "f11c22f6-3728-4eee-a7dd-9aa5bf270593",
+          safari_web_id: "YOUR_SAFARI_WEB_ID",
+          notifyButton: {
+            enable: true,
+            position: 'bottom-right',
+            size: 'medium',
+            theme: 'default',
+            bottomOffset: '85px'
+          },
+          welcomeNotification: {
+            title: "شكراً لك!",
+            message: "تم تفعيل الإشعارات بنجاح لتصلك أحدث العروض.",
+            enable: true
+          }
+        });
+      });
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        primary: '#D4AF37', 
+                        primaryDark: '#AA7C11', 
+                        secondary: '#1a1a1a', 
+                        accent: '#FFD700', 
+                        bgBody: '#f4f5f7', 
+                        bgApp: '#ffffff',
+                    },
+                    boxShadow: {
+                        'glow': '0 8px 20px rgba(212, 175, 55, 0.25)',
+                        'premium': '0 10px 30px rgba(0, 0, 0, 0.08)',
+                        'soft': '0 4px 12px rgba(0, 0, 0, 0.03)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🚀 WebView & Mobile Specific CSS Optimizations */
+        * { -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background-color: #f4f5f7; margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; height: 100dvh; text-size-adjust: 100%; }
+        ::-webkit-scrollbar { display: none; } 
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        
+        .hidden-view { display: none !important; }
+        .page-view { will-change: opacity, transform; } 
+        .slider-track { display: flex; transition: transform 0.5s ease-in-out; will-change: transform; } 
+        
+        .app-container { width: 100%; max-width: 480px; background-color: #ffffff; position: relative; box-shadow: 0 0 40px rgba(0, 0, 0, 0.12); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        #main-scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 85px; position: relative; background-color: #ffffff; -webkit-overflow-scrolling: touch; }
+
+        /* Bottom Nav Premium */
+        .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 75px; background: rgba(255, 255, 255, 0.98); border-top: 1px solid #f1f3f7; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; z-index: 100; backdrop-filter: blur(15px); box-shadow: 0 -4px 20px rgba(0,0,0,0.04); transition: transform 0.3s ease; will-change: transform; }
+        .bottom-nav.hide { transform: translateY(100%); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #7e8494; font-size: 11px; font-weight: 700; cursor: pointer; flex: 1; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .nav-item i { font-size: 20px; transition: 0.25s; }
+        .nav-item.active { color: #D4AF37; }
+        .nav-item.active i { transform: translateY(-3px) scale(1.15); color: #1a1a1a; filter: drop-shadow(0 2px 5px rgba(212, 175, 55, 0.3)); }
+
+        /* Inputs & Buttons */
+        .input-premium-form { @apply w-full pr-11 pl-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 outline-none transition-all text-gray-900 font-bold placeholder:text-gray-400 text-sm shadow-sm; }
+        .input-premium-icon { @apply absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors text-lg; }
+        .input-premium-wrapper { @apply relative mb-4; }
+        .input-premium-wrapper:focus-within .input-premium-icon { @apply text-primary; }
+        .form-premium-label { @apply block text-xs font-black text-gray-700 mb-1.5 mr-1; }
+        .btn-primary { @apply bg-gradient-to-r from-[#D4AF37] to-[#AA7C11] text-white font-black py-3.5 px-6 rounded-xl hover:shadow-glow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-sm border-none; }
+        
+        .cart-badge { position: absolute; top: -4px; right: -6px; background: #dc3545; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 50%; box-shadow: 0 2px 6px rgba(220,53,69,0.4); }
+        .slider-slide { min-width: 100%; flex-shrink: 0; position: relative; }
+        
+        /* Product Card Modern */
+        .product-card-modern { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #eaedf1; box-shadow: 0 2px 8px rgba(0,0,0,0.02); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; position: relative; height: 100%; will-change: transform; }
+        .product-card-modern:active { transform: scale(0.98); }
+        .product-card-modern .img-container { width: 100%; height: 120px; padding: 10px; background: #fff; display: flex; align-items: center; justify-content: center; }
+        .product-card-modern img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .product-card-modern .content { padding: 10px; flex: 1; display: flex; flex-direction: column; }
+        .product-card-modern .btn-add-dark { background: #232536; color: #fff; width: 100%; padding: 8px; text-align: center; font-weight: 800; font-size: 12px; transition: background 0.3s; margin-top: auto; }
+        .product-card-modern .btn-add-dark:hover { background: #D4AF37; }
+        .product-card-modern .btn-soldout { background: #f8d7da; color: #dc3545; width: 100%; padding: 8px; text-align: center; font-weight: 800; font-size: 12px; cursor: not-allowed; margin-top: auto; }
+
+        .brand-circle { width: 64px; height: 64px; border-radius: 50%; background: #fff; border: 2px solid #eaedf1; padding: 5px; flex-shrink: 0; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .brand-circle:active { border-color: #D4AF37; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25); transform: scale(1.05); }
+        .brand-circle img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* Compact Categories */
+        .cat-sidebar-item { padding: 12px 10px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f8f9fa; color: #6c757d; line-height: 1.3; }
+        .cat-sidebar-item.active { background: #fff; color: #1a1a1a; border-right: 3px solid #D4AF37; font-weight: 900; }
+        .cat-content-header { font-weight: 900; font-size: 13px; color: #1a1a1a; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #eaedf1; display: flex; justify-content: space-between; align-items: center;}
+        .cat-item-card-new { background: #fff; border: 1px solid #eaedf1; border-radius: 8px; display: flex; align-items: center; margin-bottom: 8px; transition: transform 0.2s; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.01); gap: 10px; will-change: transform;}
+        .cat-item-card-new:active { border-color: #D4AF37; box-shadow: 0 3px 10px rgba(212, 175, 55, 0.1); transform: translateX(-2px); }
+
+        .menu-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; background: #fff; border-bottom: 1px solid #f5f6f8; font-weight: 700; font-size: 13px; color: #232536; transition: background 0.2s; cursor: pointer;}
+        .menu-list-item:active { background: #f8f9fa; }
+        .menu-list-item i.leading { width: 22px; text-align: right; color: #6c757d; font-size: 16px; margin-left: 10px; }
+        .menu-list-item i.trailing { color: #ced4da; font-size: 11px; }
+
+        .section-title { display: flex; justify-content: center; align-items: center; margin: 16px 0 12px 0; }
+        .section-title span { font-weight: 900; font-size: 13px; color: #1a1a1a; padding: 0 12px; letter-spacing: 0.5px; }
+        .section-title::before, .section-title::after { content: ''; flex: 1; border-bottom: 1px solid #f1f3f7; margin: 0 12px; }
+
+        .pulse-viewers { animation: pulseRed 2.5s infinite; }
+        @keyframes pulseRed { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
+
+        .premium-modal-header { background: linear-gradient(135deg, #1A1A1A 0%, #252525 100%); border-bottom: 3px solid #D4AF37; }
+        
+        .pulse-glow { animation: logoPulse 2.5s infinite ease-in-out; }
+        @keyframes logoPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.15)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.15)); }
+        }
+
+        /* 🚀 TOP TOAST NOTIFICATIONS */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            pointer-events: none;
+            width: 100%;
+        }
+        .toast {
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 800;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            animation: slideDownToast 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: max-content;
+            max-width: 90%;
+            pointer-events: auto;
+        }
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.info { background: #1a1a1a; color: #D4AF37; border: 1px solid #D4AF37; } 
+        @keyframes slideDownToast {
+            0% { transform: translateY(-50px) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes fadeOutToast {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-30px) scale(0.9); opacity: 0; }
+        }
+
+        /* 🚀 IFRAME MODAL ANIMATION */
+        .slide-up-modal { animation: slideUp 0.4s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Onboarding */
+        .onboarding-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
+        .onboarding-card { background: white; border-radius: 20px; width: 85%; max-width: 320px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: onboardingPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; position: relative; }
+        .onboarding-arrow { position: absolute; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; transition: all 0.3s; }
+        @keyframes onboardingPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .hdr-icon-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: all 0.25s; position: relative; background: #f8f9fa; border: 1px solid #edf0f5; }
+        .hdr-icon-btn:active { background: #eef1f6; transform: scale(0.92); color: #D4AF37; }
+    </style>
+</head>
+<body>
+
+    <!-- 🚀 SPLASH SCREEN -->
+    <div id="app-initial-preloader" class="fixed inset-0 z-[99999] flex flex-col items-center justify-between bg-[#1A1A1A] p-8 text-center transition-opacity duration-700">
+        <div></div>
+        <div class="flex flex-col items-center gap-6">
+            <div class="w-36 h-36 flex items-center justify-center pulse-glow overflow-hidden">
+                <img src="https://lh3.googleusercontent.com/pw/AP1GczOub4lqSzoSaYf-PPzzwR0Xi_b9K2-KrfYRDjE3jgoGudFNiVf-BuFD6IaQfPw4cFrqYe-CFmET1aQmHmKeZH9oV1d6cIYjZRgd27ZEYxMdtxu7LmhusnHwNuE-YUDaaWiCLk-benb6zWcCUj2H5LgG=w2499-h2612-s-no-gm?authuser=0" 
+                     class="w-full h-full object-contain mix-blend-screen bg-transparent" 
+                     alt="Dr. Wells Logo"
+                     onerror="this.src='https://via.placeholder.com/150/000000/ffffff?text=Dr.+Wells'">
+            </div>
+            <div class="space-y-3 px-4">
+                <h1 class="text-white font-black text-lg tracking-wide leading-tight">أهلاً بكم في صيدليات Dr. Wells</h1>
+                <p class="text-primary font-bold text-xs tracking-wider">بوابتكم الطبية الذكية الآمنة...</p>
+            </div>
+        </div>
+        <div class="flex flex-col items-center gap-3 w-full max-w-xs">
+            <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary to-primaryDark rounded-full animate-[loadingBar_2.5s_ease-in-out_infinite]" style="width: 40%"></div>
+            </div>
+            <span class="text-gray-400 text-[10px] font-bold">جاري تأمين الاتصال بالسحابة الذكية وفحص البيانات</span>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="ai-loading-overlay" class="fixed inset-0 z-[300] hidden flex-col items-center justify-center bg-white/95 backdrop-blur-sm">
+        <div class="relative w-20 h-20 mb-4">
+            <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-t-primary rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center text-primary text-2xl"><i class="fa-solid fa-spinner animate-pulse"></i></div>
+        </div>
+        <h3 class="font-black text-lg text-gray-900" id="ai-status-title">جاري المعالجة...</h3>
+        <p id="ai-status-msg" class="text-xs text-gray-500 font-bold mt-2 text-center px-6 leading-relaxed">يرجى الانتظار...</p>
+    </div>
+
+    <!-- 🚀 النافذة المدمجة الجديدة لرفع الصور المتعددة (Native Multi-Upload) -->
+    <div id="native-upload-modal" class="fixed inset-0 z-[280] hidden flex flex-col justify-end bg-black/60 backdrop-blur-sm p-0 transition-opacity">
+        <div class="bg-white rounded-t-[2rem] w-full max-w-md p-6 flex flex-col shadow-2xl slide-up-modal mx-auto relative pb-10">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-base text-gray-900 flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary animate-pulse"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    الرفع الذكي للمستندات
+                </h3>
+                <button onclick="closeNativeUpload()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600 transition-colors"><i class="fa-solid fa-times"></i></button>
+            </div>
+
+            <!-- منطقة اختيار الصور -->
+            <div id="rx-upload-area" class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center cursor-pointer hover:bg-gray-50 hover:border-primary transition-colors flex flex-col items-center justify-center gap-3" onclick="document.getElementById('rx-file-input').click()">
+                <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-2xl shadow-sm"><i class="fa-regular fa-images"></i></div>
+                <div>
+                    <p class="text-sm font-black text-gray-800">اضغط لاختيار صور الروشتة</p>
+                    <p class="text-[11px] text-gray-500 mt-1 font-bold">يمكنك تحديد أكثر من صورة في نفس الوقت</p>
+                </div>
+            </div>
+            
+            <!-- إضافة خاصية multiple هنا لرفع أكثر من صورة -->
+            <input type="file" id="rx-file-input" accept="image/*" multiple class="hidden" onchange="previewRxImages(event)">
+
+            <!-- منطقة معاينة الصور والرفع -->
+            <div id="rx-preview-area" class="hidden flex-col items-center w-full">
+                <div class="w-full bg-gray-50 rounded-2xl p-3 border border-gray-200 mb-4 shadow-inner">
+                    <div id="rx-img-preview-container" class="flex gap-3 overflow-x-auto w-full pb-2 hide-scroll items-center">
+                        <!-- يتم حقن صور المعاينة هنا عبر الجافاسكريبت -->
+                    </div>
+                </div>
+                
+                <div class="flex gap-2 w-full">
+                    <button onclick="document.getElementById('rx-file-input').click()" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black py-3.5 rounded-xl text-xs transition-colors shadow-sm">إضافة صور</button>
+                    <button id="rx-confirm-upload-btn" onclick="uploadRxToCloud()" class="flex-1 bg-[#232536] hover:bg-[#1a1a1a] text-white font-black py-3.5 rounded-xl text-xs shadow-md transition-all flex justify-center items-center gap-2">
+                        <span>تأكيد ورفع المستندات</span> <i class="fa-solid fa-check-double text-green-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="camera-source-modal" class="fixed inset-0 z-[260] hidden flex items-end justify-center bg-black/60 p-0" onclick="toggleCameraSourceModal(false)">
+        <div class="bg-white rounded-t-[2.5rem] w-full max-w-md p-6 pb-8 space-y-4 shadow-2xl transition-transform duration-300" onclick="event.stopPropagation()">
+            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-2"></div>
+            <h3 class="font-black text-center text-gray-900 text-base mb-2" id="camera-modal-title">البحث بالصورة الذكية</h3>
+            <button id="btn-camera-opt" onclick="triggerCameraInput('camera')" class="w-full bg-primary/10 hover:bg-primary/20 text-primaryDark font-black py-4 px-6 rounded-2xl flex items-center justify-between transition-colors shadow-soft">
+                <span class="text-xs" id="btn-camera-text">التقاط صورة للعلبة الآن</span>
+                <i class="fa-solid fa-camera text-lg"></i>
+            </button>
+            <button id="btn-album-opt" onclick="triggerCameraInput('album')" class="w-full bg-gray-50 hover:bg-gray-100 text-gray-800 font-black py-4 px-6 rounded-2xl flex items-center justify-between transition-colors shadow-soft border border-gray-100">
+                <span class="text-xs" id="btn-album-text">اختيار صورة من معرض الصور</span>
+                <i class="fa-solid fa-images text-lg"></i>
+            </button>
+            <button onclick="toggleCameraSourceModal(false)" class="w-full bg-gray-100 text-gray-500 font-bold py-3 rounded-2xl text-xs">إلغاء</button>
+        </div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="onboarding-guide-container" class="onboarding-overlay hidden">
+        <div class="onboarding-card" id="onboarding-card">
+            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xl mx-auto mb-3" id="onboarding-icon">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h3 class="font-black text-gray-900 text-base mb-2" id="onboarding-title">مرحباً بك في جولتك السريعة</h3>
+            <p class="text-xs text-gray-600 font-bold leading-relaxed mb-5" id="onboarding-desc">سنوضح لك سريعاً كيف تستمتع بتجربة تطبيقنا الطبية الرائعة في ثوانٍ.</p>
+            <div class="flex items-center justify-between border-t border-gray-100 pt-4">
+                <button onclick="skipOnboarding()" class="text-xs text-gray-400 font-bold hover:text-gray-600">تخطي</button>
+                <button onclick="nextOnboardingStep()" class="bg-primary hover:bg-primaryDark text-white font-black text-xs px-4 py-2 rounded-lg shadow-md transition-colors" id="onboarding-next-btn">التالي <i class="fa-solid fa-chevron-left mr-1"></i></button>
+            </div>
+            <div class="onboarding-arrow" id="onboarding-arrow"></div>
+        </div>
+    </div>
+
+    <div id="generic-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease]">
+        <div class="bg-white rounded-3xl shadow-premium relative border border-gray-100 w-[95%] max-w-md overflow-hidden p-6 flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                <h3 id="modal-title" class="font-black text-base text-gray-900"></h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-red-100 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div id="modal-content" class="overflow-y-auto pr-1 text-xs text-gray-700 leading-relaxed font-bold"></div>
+        </div>
+    </div>
+
+    <div id="client-app" class="app-container">
+        
+        <!-- HEADER -->
+        <header class="bg-white p-3 border-b border-gray-100 shadow-sm sticky top-0 z-50 flex justify-between items-center shrink-0">
+            <div class="flex gap-2.5 text-gray-800 items-center">
+                <div class="hdr-icon-btn relative" id="guide-step-search" onclick="toggleSearchBar()">
+                    <i class="fa-solid fa-magnifying-glass text-gray-700 text-lg cursor-pointer transition-colors hover:text-primary"></i>
+                </div>
+                <div class="hdr-icon-btn relative" id="guide-step-camera" onclick="openAiSmartSearchCamera()">
+                    <i class="fa-solid fa-camera text-gray-600 text-lg cursor-pointer transition-colors hover:text-primary"></i>
+                    <input type="file" id="smart-camera-direct" accept="image/*" capture="environment" class="hidden" onchange="processSmartImageAnalysis(event)">
+                    <input type="file" id="smart-camera-album" accept="image/*" class="hidden" onchange="processSmartImageAnalysis(event)">
+                </div>
+                <div class="hdr-icon-btn relative" id="guide-step-cart" onclick="navigate('cart')">
+                    <i class="fa-solid fa-cart-shopping text-gray-600 text-lg hover:text-primary transition-colors"></i>
+                    <span id="cart-badge" class="cart-badge hidden">0</span>
+                </div>
+            </div>
+            <div class="flex flex-row-reverse items-center gap-2.5 cursor-pointer" onclick="navigate('home')">
+                <img id="header-store-logo" src="https://lh3.googleusercontent.com/pw/AP1GczOub4lqSzoSaYf-PPzzwR0Xi_b9K2-KrfYRDjE3jgoGudFNiVf-BuFD6IaQfPw4cFrqYe-CFmET1aQmHmKeZH9oV1d6cIYjZRgd27ZEYxMdtxu7LmhusnHwNuE-YUDaaWiCLk-benb6zWcCUj2H5LgG=w2499-h2612-s-no-gm?authuser=0" alt="Store Logo" class="h-10 w-10 object-contain drop-shadow-sm rounded-full p-0.5 border border-primary/25 bg-gray-50 shrink-0">
+                <div class="flex flex-col text-left">
+                    <span id="header-store-name" dir="auto" class="font-black text-sm leading-tight max-w-[140px] truncate text-right"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- SEARCH BAR -->
+        <div id="search-container" class="bg-white p-3 border-b border-gray-100 z-40 w-full shrink-0 relative hidden">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="client-search" oninput="handleClientSearch()" class="w-full pr-11 pl-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold focus:border-primary focus:bg-white transition-all placeholder:text-gray-400" placeholder="ابحث باسم المنتج، المادة الفعالة، الوصف...">
+                <i id="clear-search-btn" class="fa-solid fa-times absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hidden hover:text-red-500 bg-white p-1 rounded-full shadow-sm" onclick="clearSearchFilter()"></i>
+            </div>
+        </div>
+
+        <div id="main-scroll-area">
+            
+            <div id="view-home" class="page-view animate-[fadeIn_0.3s_ease] p-0 pb-6">
+                <div id="search-results-wrapper" class="hidden p-4">
+                    <div class="section-title"><span id="search-results-title">نتائج البحث</span></div>
+                    <div id="search-products-grid" class="grid grid-cols-2 gap-3 mb-6"></div>
+                </div>
+                <div id="home-content-wrapper" class="pt-4 flex flex-col gap-4"></div>
+                
+                <div id="home-brands-wrapper" class="bg-white py-4 mt-2 border-t border-gray-50 hidden">
+                    <div class="section-title !mt-0 !mb-3"><span>أبرز العلامات التجارية</span></div>
+                    <div id="brands-container" class="flex gap-3 overflow-x-auto hide-scroll px-4 pb-2"></div>
+                </div>
+            </div>
+
+            <div id="view-filtered-list" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 bg-[#f4f5f7] min-h-full">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+                    <button onclick="navigate('home')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 id="filtered-list-title" class="font-black text-sm text-gray-900 flex-1 text-center truncate">المنتجات</h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4">
+                    <div id="filtered-products-grid" class="grid grid-cols-2 gap-3"></div>
+                </div>
+            </div>
+
+            <div id="view-categories" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-0 bg-[#f4f5f7] h-full flex flex-col">
+                <div class="bg-white p-3.5 border-b border-gray-100 shadow-sm shrink-0">
+                    <h2 class="font-black text-sm text-gray-900 text-center">التصنيفات الشاملة</h2>
+                </div>
+                <div id="full-categories-container" class="flex-1 flex overflow-hidden"></div>
+            </div>
+
+            <div id="view-product-details" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 bg-white min-h-full z-[200]">
+                <button onclick="navigateBackFromDetails()" class="absolute top-4 left-4 z-50 w-9 h-9 bg-white/90 backdrop-blur-md text-gray-800 rounded-full flex items-center justify-center shadow-soft border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="w-full h-64 bg-gray-50 p-6 flex items-center justify-center relative border-b border-gray-100">
+                    <img id="pd-img" src="" class="max-w-full max-h-full object-contain mix-blend-multiply drop-shadow-md">
+                </div>
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-2"><span id="pd-cat" class="text-[9px] font-black text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20 inline-block"></span></div>
+                    <h2 id="pd-title" class="text-lg font-black text-gray-900 leading-tight mb-3"></h2>
+                    <div class="flex items-center gap-2 text-[11px] font-bold text-gray-500 mb-4 bg-red-50 text-red-600 p-2 rounded-lg w-fit">
+                        <i class="fa-solid fa-eye pulse-viewers text-xs"></i> <span id="pd-viewers">5</span> عميل يشاهد هذا المنتج الآن
+                    </div>
+                    <div class="flex items-end gap-1.5 pb-4 border-b border-gray-100">
+                        <span id="pd-price" class="text-2xl font-black text-[#232536] tracking-tight"></span>
+                        <span class="text-xs font-bold text-gray-500 mb-1">ج.م</span>
+                        <span id="pd-old-price" class="mr-3 text-xs font-bold text-gray-400 line-through"></span>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-black text-xs text-gray-800 mb-2 flex items-center gap-2"><div class="w-1.5 h-3.5 bg-primary rounded-full"></div> تفاصيل المنتج ومكوناته</h4>
+                        <p id="pd-desc" class="text-xs font-semibold text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 whitespace-pre-line"></p>
+                    </div>
+                    <div class="mt-6 pt-5 border-t border-gray-100">
+                        <div class="section-title !mt-0 !mb-3"><span>منتجات مماثلة قد تهمك</span></div>
+                        <div id="similar-products-container" class="flex gap-3 overflow-x-auto hide-scroll pb-2"></div>
+                    </div>
+                </div>
+                <div class="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] flex gap-3">
+                    <button id="pd-add-btn" class="btn-primary flex-1 py-3.5 text-sm shadow-premium bg-[#232536] text-white hover:bg-primary"><i class="fa-solid fa-cart-plus text-base"></i> أضف إلى السلة</button>
+                    <button onclick="askAboutProductWhatsApp()" class="w-12 h-12 shrink-0 bg-[#25D366] text-white rounded-xl flex items-center justify-center text-xl shadow-soft"><i class="fa-brands fa-whatsapp"></i></button>
+                </div>
+            </div>
+
+            <!-- ACCOUNT VIEW -->
+            <div id="view-account" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-0 min-h-full bg-[#f4f5f7]">
+                <div class="section-title mt-5"><span>حسابي الشخصي</span></div>
+                <div id="auth-profile" class="hidden p-4">
+                    <div class="bg-gradient-to-br from-[#232536] to-[#1a1a24] p-5 rounded-2xl text-center text-white mb-4 shadow-premium relative overflow-hidden">
+                        <i class="fa-solid fa-crown absolute -left-4 -top-4 text-6xl text-white/5 -rotate-12"></i>
+                        <h3 class="text-lg font-black text-white mb-1 tracking-wide" id="prof-display-name"></h3>
+                        <p class="text-[11px] text-primary font-bold mb-2.5" id="prof-display-phone" dir="ltr"></p>
+                        <p class="text-[10px] text-gray-300 font-bold mb-3.5" id="prof-display-address"></p>
+                        <div class="bg-white/5 backdrop-blur-md border border-white/10 p-3 rounded-xl inline-block w-full">
+                            <div class="text-[11px] text-gray-300 font-bold mb-0.5">نقاط ويلز للمكافآت</div>
+                            <div class="text-2xl font-black text-white" id="user-points">0 <span class="text-xs font-normal text-gray-400">نقطة</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white border-y border-gray-100 mt-2">
+                    <div id="login-menu-item" class="menu-list-item" onclick="showLoginModal()">
+                        <div class="flex items-center"><i class="fa-regular fa-user leading"></i> تسجيل الدخول / إنشاء حساب</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item hidden" id="orders-menu-item" onclick="navigate('orders')">
+                        <div class="flex items-center"><i class="fa-solid fa-box-open leading text-amber-500"></i> طلباتي السابقة وحالتها</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="navigate('magazine')">
+                        <div class="flex items-center"><i class="fa-solid fa-book-open leading text-emerald-500"></i> مجلة ويلز الطبية</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="navigate('mommies')">
+                        <div class="flex items-center"><i class="fa-solid fa-heart-pulse leading text-pink-500"></i> معلومات تهمك</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="navigate('branches')">
+                        <div class="flex items-center"><i class="fa-solid fa-store leading"></i> فروع صيدلياتنا</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="openTermsModal()">
+                        <div class="flex items-center"><i class="fa-solid fa-file-shield leading text-blue-500"></i> شروط الخدمة وسياسة الاستخدام</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item" onclick="showContactModal()">
+                        <div class="flex items-center"><i class="fa-solid fa-headset leading"></i> اتصل بنا والدعم المباشر</div>
+                        <i class="fa-solid fa-chevron-left trailing"></i>
+                    </div>
+                    <div class="menu-list-item hidden text-red-500" id="logout-menu-item" onclick="logout()">
+                        <div class="flex items-center"><i class="fa-solid fa-arrow-right-from-bracket leading text-red-400"></i> تسجيل الخروج</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAGAZINE VIEW PAGE -->
+            <div id="view-magazine" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 min-h-full bg-[#f4f5f7]">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+                    <button onclick="navigate('account')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 class="font-black text-sm text-gray-900 flex-1 text-center">مجلة ويلز الطبية <i class="fa-solid fa-book-medical text-primary ml-1"></i></h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4 space-y-4" id="magazine-container"></div>
+            </div>
+
+            <!-- BRANCHES VIEW -->
+            <div id="view-branches" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 min-h-full bg-[#f4f5f7]">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+                    <button onclick="navigate('account')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 class="font-black text-sm text-gray-900 flex-1 text-center">فروعنا الرسمية</h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4 space-y-3" id="branches-container"></div>
+            </div>
+
+            <!-- MOMS / GENDER INFO VIEW -->
+            <div id="view-mommies" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-0 min-h-full bg-white">
+                <div class="bg-white p-4 flex items-center gap-3 sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+                    <button onclick="navigate('account')" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-700 hover:bg-gray-100"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h2 class="font-black text-sm text-gray-900 flex-1 text-center">معلومات تهمك وتهم أسرتك <i class="fa-solid fa-star text-primary ml-1"></i></h2>
+                    <div class="w-8"></div>
+                </div>
+                <div class="p-4" id="mommies-container"></div>
+            </div>
+
+            <!-- 🚀 PRESCRIPTION VIEW -->
+            <div id="view-prescription" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-4">
+                <div class="section-title" id="guide-step-rx"><span>الروشتة والتعاقدات للتأمين</span></div>
+                <div class="flex bg-gray-100 rounded-xl p-1 mb-4">
+                    <button onclick="switchPrescriptionTab('normal')" id="tab-rx-normal" class="flex-1 py-2.5 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all">روشتة عادية</button>
+                    <button onclick="switchPrescriptionTab('insurance')" id="tab-rx-insurance" class="flex-1 py-2.5 rounded-lg font-black text-xs text-gray-500 transition-all">تعاقدات وتأمينات طبية</button>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center relative overflow-hidden">
+                    <div id="rx-normal-info"><p class="text-xs text-gray-500 mb-4 font-bold leading-relaxed">قم بطلب الروشتة عبر البوابة الذكية، وسيقوم صيدلي ويلز بتجهيزها وتوصيلها فوراً.</p></div>
+                    <div id="rx-insurance-info" class="hidden">
+                        <p class="text-[11px] text-red-500 mb-4 font-black bg-red-50 p-2.5 rounded-xl border border-red-100 leading-relaxed"><i class="fa-solid fa-shield-halved ml-1"></i> يرجى إرفاق صورة الروشتة + بطاقة التأمين الطبي لطلب موافقة التأمين المباشرة.</p>
+                        <div class="mb-4 text-right">
+                            <label class="form-premium-label">شركة التأمين الطبي</label>
+                            <select id="rx-insurance-company" class="w-full pr-4 pl-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-xs focus:border-primary">
+                                <option value="">اختر شركة التأمين المعتمدة...</option>
+                                <option value="MetLife">ميتلايف MetLife</option>
+                                <option value="Bupa">بوبا Bupa</option>
+                                <option value="AXA">أكسا AXA</option>
+                                <option value="GlobeMed">جلوب ميد GlobeMed</option>
+                                <option value="NextCare">نكست كير NextCare</option>
+                                <option value="Medgulf">ميدغلف Medgulf</option>
+                                <option value="Other">شركة أخرى</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- البوابة الذكية لفتح نظام الرفع المدمج (Native) -->
+                    <div class="border-2 border-dashed border-gray-300 bg-[#D4AF37]/5 hover:bg-[#D4AF37]/10 p-6 rounded-xl cursor-pointer transition-colors mb-4 group" onclick="openNativeUploadModal()">
+                        <i class="fa-solid fa-wand-magic-sparkles text-3xl text-primary mb-3 group-hover:animate-bounce"></i>
+                        <p class="text-xs font-black text-gray-700">إرفاق صورة المستند / الروشتة</p>
+                        <p class="text-[9px] text-gray-500 font-bold mt-1 bg-white inline-block px-2 py-1 rounded border border-gray-200 shadow-sm">يتم الرفع بشكل مدمج داخل التطبيق</p>
+                    </div>
+                    
+                    <!-- كرت معاينة الصور التي تم رفعها بنجاح -->
+                    <div id="rx-preview-container" class="hidden mb-4 p-3 bg-green-50 rounded-xl border border-green-200 text-right flex items-center justify-between animate-[fadeIn_0.3s_ease]">
+                        <div class="flex items-center gap-2.5 truncate flex-1">
+                            <span class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-check-double"></i></span>
+                            <div class="truncate">
+                                <h4 class="font-black text-[11px] text-green-800" id="rx-confirmed-count-text">تم إرفاق الروشتة بنجاح</h4>
+                                <p class="text-[9px] text-green-600 font-bold mt-0.5">جاهزة للإرسال</p>
+                            </div>
+                        </div>
+                        <button onclick="clearImportedRx()" class="text-[10px] text-red-500 hover:text-red-700 font-black px-3 py-1.5 bg-white rounded-lg border border-red-100 shadow-sm shrink-0 mr-2">إلغاء الصور</button>
+                    </div>
+
+                    <div class="text-right space-y-3 mb-4">
+                        <div>
+                            <label class="form-premium-label">ملاحظات إضافية للصيدلي المختص</label>
+                            <textarea id="rx-notes" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold focus:border-primary h-20 placeholder:text-gray-400" placeholder="اكتب أي بدائل تفضلها، مواعيد التوصيل، أو أي استفسار دوائي..."></textarea>
+                        </div>
+                    </div>
+                    <button id="prescription-submit-btn" onclick="submitPrescription()" class="btn-primary w-full bg-[#232536] text-white hover:bg-primary"><i class="fa-solid fa-paper-plane"></i> إرسال الطلب الآمن للصيدلية</button>
+                </div>
+            </div>
+
+            <!-- CART -->
+            <div id="view-cart" class="page-view hidden-view animate-[fadeIn_0.3s_ease] p-4">
+                <div class="section-title"><span>سلة المشتريات والطلبات</span></div>
+                <div id="cart-items-container" class="space-y-3 mb-6"></div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-4">
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="font-black text-sm text-gray-900">الإجمالي النهائي:</span>
+                        <span class="text-xl font-black text-primary" id="cart-total-final">0 <span class="text-xs text-gray-500">ج.م</span></span>
+                    </div>
+                    <button onclick="checkout()" id="checkout-btn" class="btn-primary w-full mt-5 bg-[#232536] text-white">إتمام الطلب وتأكيد التوصيل</button>
+                </div>
+            </div>
+            
+            <!-- ORDERS -->
+            <div id="view-orders" class="page-view hidden-view animate-[slideInRight_0.3s_ease] p-4">
+                <div class="flex items-center gap-3 mb-4">
+                    <button onclick="navigate('account')" class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h3 class="font-black text-sm">سجل ومتابعة طلباتي</h3>
+                </div>
+                <div id="client-orders-container" class="space-y-3"></div>
+            </div>
+
+        </div> 
+        
+        <!-- NAV -->
+        <nav class="bottom-nav" id="main-bottom-nav">
+            <div class="nav-item" id="guide-step-account" onclick="navigate('account', this)"><i class="fa-regular fa-user"></i><span>حسابي</span></div>
+            <div class="nav-item" onclick="navigate('prescription', this)"><i class="fa-solid fa-clipboard-list"></i><span>الروشتة</span></div>
+            <div class="nav-item" onclick="navigate('categories', this)"><i class="fa-solid fa-layer-group"></i><span>التصنيفات</span></div>
+            <div class="nav-item active" onclick="navigate('home', this)"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
+        </nav>
+
+        <!-- AUTH MODAL -->
+        <div id="auth-modal" class="fixed inset-0 z-[250] hidden flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col border border-gray-100">
+                <div class="premium-modal-header p-6 text-center relative shrink-0">
+                    <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-4 left-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-50"><i class="fa-solid fa-times"></i></button>
+                    <img id="auth-modal-logo" src="https://lh3.googleusercontent.com/pw/AP1GczOub4lqSzoSaYf-PPzzwR0Xi_b9K2-KrfYRDjE3jgoGudFNiVf-BuFD6IaQfPw4cFrqYe-CFmET1aQmHmKeZH9oV1d6cIYjZRgd27ZEYxMdtxu7LmhusnHwNuE-YUDaaWiCLk-benb6zWcCUj2H5LgG=w2499-h2612-s-no-gm?authuser=0" alt="Logo" class="h-14 w-14 mx-auto object-contain bg-white rounded-full p-1 border border-primary mb-2 shadow-glow">
+                    <h2 class="text-lg font-black text-white" id="auth-title">تسجيل الدخول</h2>
+                    <p class="text-[10px] text-gray-300 mt-0.5 font-bold">بوابتكم الطبية الشاملة والآمنة</p>
+                </div>
+                <div class="p-6 flex flex-col flex-1 overflow-hidden bg-[#fbfbfb]">
+                    <div class="flex bg-gray-200/60 rounded-xl p-1 mb-5 shrink-0 border border-gray-100">
+                        <button onclick="toggleAuthMode(false)" id="tab-login" class="flex-1 py-2 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all">تسجيل دخول</button>
+                        <button onclick="toggleAuthMode(true)" id="tab-reg" class="flex-1 py-2 rounded-lg font-black text-xs text-gray-500 hover:text-gray-700 transition-all">حساب جديد</button>
+                    </div>
+
+                    <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 text-right overflow-y-auto pr-1 pb-2">
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">رقم الهاتف المسجل</label>
+                            <input type="tel" id="login-id" required class="input-premium-form" placeholder="مثال: 01001234567">
+                            <i class="fa-solid fa-phone input-premium-icon"></i>
+                        </div>
+                        <div class="input-premium-wrapper">
+                            <label class="form-premium-label">كلمة المرور</label>
+                            <input type="password" id="login-password" required class="input-premium-form" placeholder="أدخل كلمة المرور الخاصة بك">
+                            <i class="fa-solid fa-lock input-premium-icon"></i>
+                        </div>
+                        <button type="submit" class="btn-primary w-full bg-[#1a1a1a] text-white mt-2 py-4 text-xs shadow-premium">دخول آمن <i class="fa-solid fa-arrow-left mr-1.5"></i></button>
+                    </form>
+
+                    <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4 text-right hidden overflow-y-auto pr-1 pb-2 flex-1">
+                        <div class="bg-primary/10 p-3 rounded-xl border border-primary/20 text-[10px] font-bold text-primaryDark text-center mb-3 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-base"></i> الرجاء كتابة بيانات دقيقة لتسريع وصول الأدوية والروشتات.
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-premium-wrapper"><label class="form-premium-label">الاسم بالكامل</label><input type="text" id="reg-name" required class="input-premium-form !pr-4" placeholder="الاسم ثلاثي"></div>
+                            <div class="input-premium-wrapper"><label class="form-premium-label">السن</label><input type="number" id="reg-age" required min="1" max="120" class="input-premium-form !pr-4" placeholder="مثال: 28"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-premium-wrapper">
+                                <label class="form-premium-label">النوع</label>
+                                <select id="reg-gender" required class="w-full pr-4 pl-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-xs focus:border-primary">
+                                    <option value="male">ذكر</option><option value="female">أنثى</option>
+                                </select>
+                            </div>
+                            <div class="input-premium-wrapper"><label class="form-premium-label">رقم الموبايل</label><input type="tel" id="reg-phone" required class="input-premium-form !pr-4" placeholder="01XXXXXXXXX"></div>
+                        </div>
+                        <div class="input-premium-wrapper"><label class="form-premium-label">رقم الواتساب (اختياري)</label><input type="tel" id="reg-whatsapp" class="input-premium-form !pr-4" placeholder="إذا كان مختلفاً عن الموبايل"></div>
+                        <h4 class="font-black text-[11px] text-primaryDark border-b border-gray-100 pb-2 mt-4 mb-2 flex items-center gap-2"><i class="fa-solid fa-map-location-dot"></i> تفاصيل العنوان الجغرافي</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-premium-wrapper"><label class="form-premium-label">المحافظة</label><input type="text" id="reg-governorate" required class="input-premium-form !pr-4" placeholder="مثال: القاهرة"></div>
+                            <div class="input-premium-wrapper"><label class="form-premium-label">المدينة</label><input type="text" id="reg-city" required class="input-premium-form !pr-4" placeholder="مثال: التجمع"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="input-premium-wrapper"><label class="form-premium-label">المنطقة / الحي</label><input type="text" id="reg-district" required class="input-premium-form !pr-4" placeholder="مثال: النرجس"></div>
+                            <div class="input-premium-wrapper"><label class="form-premium-label">الشارع ورقم المبنى</label><input type="text" id="reg-street" required class="input-premium-form !pr-4" placeholder="مثال: شارع 15 مبنى 4"></div>
+                        </div>
+                        <div class="input-premium-wrapper"><label class="form-premium-label">علامة مميزة للعنوان</label><input type="text" id="reg-landmark" class="input-premium-form !pr-4" placeholder="مثال: بجوار سوبرماركت"></div>
+                        <div class="p-4 bg-white rounded-2xl border border-gray-100 flex flex-col gap-2 items-center text-center shadow-soft">
+                            <div class="flex items-center gap-2 text-[11px] font-black text-gray-800"><i class="fa-solid fa-location-crosshairs text-primary text-sm animate-pulse"></i><span>تحديد الموقع الجغرافي الفعلي (GPS)</span></div>
+                            <p class="text-[9px] text-gray-400 font-bold leading-normal">يساعد المندوبين في الوصول الفوري وبكل دقة تامة</p>
+                            <button type="button" onclick="getCurrentGPSLocation()" class="w-full bg-[#1a1a1a] text-white font-black py-2.5 rounded-xl text-[11px] hover:bg-primary transition-colors shadow-sm mt-1"><span id="gps-btn-text"><i class="fa-solid fa-location-arrow ml-1"></i> التقاط موقعي الحالي</span></button>
+                            <input type="hidden" id="reg-lat" value=""><input type="hidden" id="reg-lng" value="">
+                        </div>
+                        <div class="input-premium-wrapper mt-4"><label class="form-premium-label">تعيين كلمة المرور</label><input type="password" id="reg-password" required minlength="6" class="input-premium-form !pr-4" placeholder="أدخل 6 أحرف على الأقل"></div>
+                        <button type="submit" class="btn-primary w-full bg-[#1a1a1a] text-white py-3.5 text-xs shadow-premium mt-2">إنشاء الحساب الان <i class="fa-solid fa-check-circle mr-1.5"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div> 
+    
+    <script>
+        // 🚀 Initialize Firebase safely once
+        let db;
+        window.addEventListener('DOMContentLoaded', () => {
+            const checkFirebase = setInterval(() => {
+                if (typeof firebase !== 'undefined') {
+                    clearInterval(checkFirebase);
+                    const firebaseConfig = { 
+                        projectId: "project1-c5c36", 
+                        databaseURL: "https://project1-c5c36-default-rtdb.firebaseio.com/"
+                    };
+                    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    initAppData();
+                }
+            }, 100);
+        });
+
+        const apiKey = ""; 
+
+        let state = {
+            currentUser: JSON.parse(localStorage.getItem('drwells_user')) || null,
+            cart: JSON.parse(localStorage.getItem('drwells_cart')) || [],
+            products: {}, orders: {}, customers: {}, brandData: {}, homeLayout: {}, settings: {}, 
+            magazine: {}, momsData: {},
+            clientSearchTerm: '', navHistory: ['home'], currentRxTab: 'normal', uploadContext: 'ai', sliderIntervals: [],
+            
+            rxExtractedUrls: [], // مصفوفة الروابط النهائية المرفوعة
+            tempRxBase64Array: [] // مصفوفة الصور المؤقتة قبل الرفع
+        };
+
+        // 🚀 Onboarding
+        let onboardingStep = 0;
+        const onboardingSteps = [
+            { elementId: "guide-step-search", title: "البحث الذكي الفوري", desc: "اضغط هنا لفتح شريط البحث الفوري والبحث بالاسم، المادة الفعالة، أو الماركة الطبية بذكاء تام.", arrowPos: "top-[-8px] right-[10px]" },
+            { elementId: "guide-step-camera", title: "المسح والبحث بالكاميرا", desc: "صوّر أي علبة دواء، وسيقوم الذكاء الاصطناعي بالتعرف الفوري على أسماء الأدوية بلمح البصر.", arrowPos: "top-[-8px] right-[50px]" },
+            { elementId: "guide-step-rx", title: "طلب الروشتة السريع", desc: "ارفع الروشتة الطبية هنا ليقوم الصيدلي بمراجعتها وتجهيزها لك فوراً وفي أقل من ثانية للرفع.", arrowPos: "bottom-[-8px] right-[40%]" },
+            { elementId: "guide-step-account", title: "حسابك والميزات الحصرية", desc: "تتبع طلباتك، قراءة المجلة الطبية، واستكشاف النصائح المخصصة لحالتك الصحية.", arrowPos: "bottom-[-8px] right-[15%]" }
+        ];
+
+        const saveLocal = () => { localStorage.setItem('drwells_user', JSON.stringify(state.currentUser)); localStorage.setItem('drwells_cart', JSON.stringify(state.cart)); };
+        
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container'); 
+            const toast = document.createElement('div');
+            const icons = { success: 'fa-check-circle', error: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+            toast.className = `toast ${type}`; 
+            toast.innerHTML = `<i class="fa-solid ${icons[type]} text-lg shrink-0"></i><span>${msg}</span>`;
+            container.appendChild(toast); 
+            setTimeout(() => { toast.style.animation = 'fadeOutToast 0.4s forwards'; setTimeout(() => toast.remove(), 400); }, 4500);
+        }
+
+        function navigate(viewId, navElement = null) {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden-view'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden-view');
+            const bNav = document.getElementById('main-bottom-nav');
+            const viewsWithoutNav = ['filtered-list', 'product-details', 'branches', 'mommies', 'orders', 'magazine'];
+            if(viewsWithoutNav.includes(viewId)) bNav.classList.add('hide'); else bNav.classList.remove('hide');
+            if (navElement && !viewsWithoutNav.includes(viewId)) { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); navElement.classList.add('active'); }
+            
+            if(viewId === 'home') { renderHomeLayout(); renderBrands(); state.navHistory = ['home']; }
+            if(viewId === 'cart') renderCart();
+            if(viewId === 'account') updateProfileUI();
+            if(viewId === 'orders') renderClientOrders();
+            if(viewId === 'mommies') renderGenderSpecificContent();
+            if(viewId === 'magazine') renderMagazinePage();
+            if(viewId === 'categories') buildFullCategoriesPage();
+            
+            if(viewId !== 'categories') document.getElementById('main-scroll-area').scrollTo({top:0, behavior: 'smooth'});
+            if(!viewsWithoutNav.includes(viewId) && viewId !== state.navHistory[state.navHistory.length-1]) state.navHistory.push(viewId);
+        }
+
+        function navigateBackFromDetails() {
+            if(document.getElementById('filtered-list-title').innerText !== 'المنتجات' && state.navHistory.includes('filtered-list')) navigate('filtered-list');
+            else navigate('home', document.querySelectorAll('.nav-item')[3]);
+        }
+
+        function showModal(title, contentHTML) { document.getElementById('modal-title').innerText = title; document.getElementById('modal-content').innerHTML = contentHTML; document.getElementById('generic-modal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('generic-modal').classList.add('hidden'); }
+
+        function toggleSearchBar() { const bar = document.getElementById('search-container'); if(bar.classList.contains('hidden')) { bar.classList.remove('hidden'); document.getElementById('client-search').focus(); } else { bar.classList.add('hidden'); clearSearchFilter(); } }
+
+        function openAiSmartSearchCamera() { state.uploadContext = 'ai'; document.getElementById('camera-modal-title').innerText = 'البحث الذكي بالصور'; document.getElementById('btn-camera-text').innerText = 'التقاط صورة للعلبة الآن'; document.getElementById('btn-album-text').innerText = 'اختيار صورة من معرض الصور'; toggleCameraSourceModal(true); }
+        function openUploadSourceModal(context) { state.uploadContext = context; document.getElementById('camera-modal-title').innerText = 'إرفاق المستندات والروشتات'; document.getElementById('btn-camera-text').innerText = 'التقاط صورة حية للمستند'; document.getElementById('btn-album-text').innerText = 'رفع صورة من ألبوم الصور'; toggleCameraSourceModal(true); }
+        function toggleCameraSourceModal(show) { const modal = document.getElementById('camera-source-modal'); if(show) modal.classList.remove('hidden'); else modal.classList.add('hidden'); }
+        function triggerCameraInput(sourceType) { toggleCameraSourceModal(false); if(state.uploadContext === 'ai') { if(sourceType === 'camera') document.getElementById('smart-camera-direct').click(); else document.getElementById('smart-camera-album').click(); } else { if(sourceType === 'camera') document.getElementById('prescription-camera-direct').click(); else document.getElementById('prescription-camera-album').click(); } }
+
+        // 🚀 وظائف البوابة المدمجة الذكية للروشتات (Native Multi-Upload)
+        
+        function openNativeUploadModal() {
+            document.getElementById('native-upload-modal').classList.remove('hidden');
+            document.getElementById('rx-upload-area').classList.remove('hidden');
+            document.getElementById('rx-preview-area').classList.add('hidden');
+            document.getElementById('rx-preview-area').classList.remove('flex');
+            document.getElementById('rx-file-input').value = "";
+            state.tempRxBase64Array = []; // تهيئة المصفوفة
+        }
+
+        function closeNativeUpload() {
+            document.getElementById('native-upload-modal').classList.add('hidden');
+        }
+
+        async function previewRxImages(event) {
+            const files = event.target.files;
+            if(!files || files.length === 0) return;
+            
+            document.getElementById('rx-upload-area').classList.add('hidden');
+            document.getElementById('rx-preview-area').classList.remove('hidden');
+            document.getElementById('rx-preview-area').classList.add('flex');
+
+            if(!state.tempRxBase64Array) state.tempRxBase64Array = [];
+
+            try {
+                // معالجة كل الصور المحددة
+                for(let i = 0; i < files.length; i++) {
+                    const base64 = await compressAndGetBase64(files[i]);
+                    state.tempRxBase64Array.push(base64);
+                }
+                
+                renderRxPreviews();
+            } catch(e) {
+                showToast("حدث خطأ في قراءة بعض الصور، يرجى المحاولة مرة أخرى.", "error");
+            }
+            
+            // تفريغ الحقل عشان لو حب يضيف نفس الصورة تاني بالخطأ أو يكمل
+            event.target.value = ""; 
+        }
+
+        function renderRxPreviews() {
+            const container = document.getElementById('rx-img-preview-container');
+            
+            if(state.tempRxBase64Array.length === 0) {
+                document.getElementById('rx-upload-area').classList.remove('hidden');
+                document.getElementById('rx-preview-area').classList.add('hidden');
+                document.getElementById('rx-preview-area').classList.remove('flex');
+                return;
+            }
+
+            let html = state.tempRxBase64Array.map((b64, idx) => `
+                <div class="relative w-20 h-24 shrink-0 rounded-xl overflow-hidden border border-gray-200 shadow-sm group bg-white">
+                    <img src="${b64}" class="w-full h-full object-cover">
+                    <button onclick="removeTempImage(${idx})" class="absolute top-1 left-1 bg-red-500/90 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600 transition-colors">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                    <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-[8px] py-0.5">صورة ${idx + 1}</div>
+                </div>
+            `).join('');
+
+            // زر إضافة المزيد
+            html += `
+                <div onclick="document.getElementById('rx-file-input').click()" class="relative w-20 h-24 shrink-0 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-white transition-colors bg-transparent">
+                    <i class="fa-solid fa-plus text-xl mb-1"></i>
+                    <span class="text-[9px] font-black">أضف المزيد</span>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function removeTempImage(idx) {
+            state.tempRxBase64Array.splice(idx, 1);
+            renderRxPreviews();
+        }
+
+        async function uploadRxToCloud() {
+            if(!state.tempRxBase64Array || state.tempRxBase64Array.length === 0) {
+                showToast("يرجى اختيار صورة واحدة على الأقل", "error");
+                return;
+            }
+            
+            const btn = document.getElementById('rx-confirm-upload-btn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> جاري تأمين ورفع المستندات...';
+            btn.disabled = true;
+
+            const uploadedUrls = [];
+
+            try {
+                // نرفع كل صورة على حدة
+                for(let i = 0; i < state.tempRxBase64Array.length; i++) {
+                    const rawBase64 = state.tempRxBase64Array[i].split(',')[1];
+                    const formData = new FormData();
+                    formData.append('image', rawBase64);
+                    
+                    try {
+                        const res = await fetch('https://api.imgbb.com/1/upload?key=32a856a9357d62058eaefbcab99e844a', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        
+                        if(data && data.success) {
+                            uploadedUrls.push(data.data.url);
+                        } else {
+                            uploadedUrls.push(state.tempRxBase64Array[i]); // Fallback
+                        }
+                    } catch(e) {
+                        uploadedUrls.push(state.tempRxBase64Array[i]); // Fallback
+                    }
+                }
+                
+                applyExtractedUrls(uploadedUrls);
+
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                closeNativeUpload();
+            }
+        }
+
+        function applyExtractedUrls(urlsArray) {
+            state.rxExtractedUrls = urlsArray;
+            document.getElementById('rx-preview-container').classList.remove('hidden');
+            document.getElementById('rx-confirmed-count-text').innerText = `تم إرفاق ${urlsArray.length} صورة بنجاح`;
+            showToast(`تم إرفاق ${urlsArray.length} مستند بنجاح، يمكنك إرسال الطلب الآن!`, "success");
+        }
+
+        function clearImportedRx() {
+            state.rxExtractedUrls = [];
+            state.tempRxBase64Array = [];
+            document.getElementById('rx-preview-container').classList.add('hidden');
+            showToast("تم إلغاء الصور المرفقة.");
+        }
+
+        function handleClientSearch() { 
+            const val = document.getElementById('client-search').value; state.clientSearchTerm = val;
+            const clearBtn = document.getElementById('clear-search-btn'); const searchWrapper = document.getElementById('search-results-wrapper'); const homeWrapper = document.getElementById('home-content-wrapper'); const brandsWrapper = document.getElementById('home-brands-wrapper');
+            document.getElementById('search-results-title').innerText = "نتائج البحث";
+            if(state.clientSearchTerm.trim().length > 0) { clearBtn.classList.remove('hidden'); searchWrapper.classList.remove('hidden'); homeWrapper.classList.add('hidden'); brandsWrapper.classList.add('hidden'); renderSearchResults(); }
+            else { clearBtn.classList.add('hidden'); searchWrapper.classList.add('hidden'); homeWrapper.classList.remove('hidden'); if(Object.keys(state.brandData).length > 0) brandsWrapper.classList.remove('hidden'); }
+        }
+        function clearSearchFilter() { document.getElementById('client-search').value = ''; handleClientSearch(); }
+
+        function showContactModal() {
+            const storePhone = state.settings.phone || '19001'; const storeWhatsapp = (state.settings.whatsapp || '201000000000').replace('+', '');
+            const content = `
+                <div class="flex flex-col items-center gap-6 py-4 text-center">
+                    <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl"><i class="fa-solid fa-headset"></i></div>
+                    <div class="space-y-1"><h4 class="font-black text-gray-900 text-sm">صيدلية د. ويلز في خدمتك</h4><p class="text-[11px] text-gray-500 font-bold">تواصل معنا مباشرة للاستفسارات والطلبات الخاصة والتعاقدات</p></div>
+                    <div class="w-full space-y-2.5">
+                        <a href="tel:${storePhone}" class="w-full flex items-center justify-between p-3.5 bg-gray-50 border border-gray-100 hover:border-primary rounded-xl transition-all group">
+                            <span class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-base"><i class="fa-solid fa-phone"></i></span>
+                            <span class="flex flex-col text-right"><span class="text-[10px] font-bold text-gray-400">الخط الساخن</span><span class="text-xs font-black text-gray-900" dir="ltr">${storePhone}</span></span></span>
+                            <i class="fa-solid fa-chevron-left text-gray-300 group-hover:text-primary transition-colors text-xs"></i>
+                        </a>
+                        <a href="https://wa.me/${storeWhatsapp}" target="_blank" class="w-full flex items-center justify-between p-3.5 bg-green-50/50 border border-green-100 hover:border-green-400 rounded-xl transition-all group">
+                            <span class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg bg-green-100 text-green-600 flex items-center justify-center text-lg"><i class="fa-brands fa-whatsapp"></i></span>
+                            <span class="flex flex-col text-right"><span class="text-[10px] font-bold text-green-500">تواصل مباشر عبر واتساب</span><span class="text-xs font-black text-gray-900" dir="ltr">+${storeWhatsapp}</span></span></span>
+                            <i class="fa-solid fa-chevron-left text-green-300 group-hover:text-green-500 transition-colors text-xs"></i>
+                        </a>
+                    </div>
+                </div>`; showModal("اتصل بنا", content);
+        }
+
+        function renderSearchResults() {
+            const grid = document.getElementById('search-products-grid'); let all = Object.values(state.products); const s = state.clientSearchTerm.toLowerCase();
+            let filtered = all.filter(p => (p.name && p.name.toLowerCase().includes(s)) || (p.code && p.code.toLowerCase().includes(s)) || (p.category && p.category.toLowerCase().includes(s)) || (p.brand && p.brand.toLowerCase().includes(s)) || (p.subcategories && p.subcategories.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s)) || (p.activeIngredients && p.activeIngredients.toLowerCase().includes(s)));
+            if(filtered.length === 0) { grid.innerHTML = '<div class="col-span-2 text-center py-10 text-gray-400 font-bold text-xs">لا توجد نتائج مطابقة للبحث</div>'; return; }
+            grid.innerHTML = filtered.slice(0, 40).map(p => generateProductCardHTML(p)).join('');
+        }
+
+        function generateProductCardHTML(p) {
+            const img = p.images?.[0] || p.image || 'https://via.placeholder.com/150'; const isAvail = p.isAvailable !== false; const discount = p.oldPrice ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : 0;
+            return `<div class="product-card-modern" onclick="openProductDetailsFull('${p.id}')">
+                ${discount > 0 ? `<div class="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm z-10">خصم ${discount}%</div>` : ''}
+                <div class="img-container"><img src="${img}" loading="lazy" class="${!isAvail?'grayscale opacity-50':''}" onerror="this.src='https://via.placeholder.com/150?text=Wells'"></div>
+                <div class="content"><h4 class="font-bold text-gray-800 text-[10px] mb-1 line-clamp-2 leading-tight min-h-[30px]">${p.name}</h4>
+                    <div class="mt-auto flex flex-col mb-1.5">${p.oldPrice ? `<span class="text-[9px] text-gray-400 line-through">${p.oldPrice} ج.م</span>` : '<span class="text-[9px] opacity-0">-</span>'}
+                    <span class="font-black text-gray-900 text-xs">${p.price} <span class="text-[8px] text-gray-500">ج.م</span></span></div></div>
+                ${isAvail ? `<button onclick="event.stopPropagation(); addToCart('${p.id}')" class="btn-add-dark">إضافة للسلة</button>` : `<div class="btn-soldout">نفذت الكمية</div>`}
+            </div>`;
+        }
+
+        function openFilteredView(title, filterKey, filterValue) {
+            document.getElementById('filtered-list-title').innerText = title; const grid = document.getElementById('filtered-products-grid'); let filtered = [];
+            if(filterKey === 'brand') filtered = Object.values(state.products).filter(p => p.brand && p.brand.trim().toLowerCase() === filterValue.toString().trim().toLowerCase());
+            else if(['category', 'mainCategory', 'subcategories', 'main_category', 'sub_category'].includes(filterKey)) { const sCat = filterValue.toString().trim().toLowerCase(); filtered = Object.values(state.products).filter(p => (p.category && p.category.trim().toLowerCase() === sCat) || (p.mainCategory && p.mainCategory.trim().toLowerCase() === sCat) || (p.subcategories && p.subcategories.trim().toLowerCase() === sCat)); }
+            else if(filterKey === 'search' || filterKey === 'product') { const s = filterValue.toString().toLowerCase(); filtered = Object.values(state.products).filter(p => (p.name && p.name.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s)) || (p.id === filterValue) || (p.code === filterValue)); }
+            else if(filterKey === 'custom_products') { 
+                const barcodes = filterValue.toString().split(',').map(c => c.trim().toLowerCase()); 
+                filtered = Object.values(state.products).filter(p => 
+                    (p.code && barcodes.includes(p.code.toLowerCase())) || 
+                    (p.id && barcodes.includes(p.id.toLowerCase()))
+                ); 
+            }
+            if(filtered.length === 0) grid.innerHTML = '<div class="col-span-2 text-center py-10 text-gray-400 font-bold text-xs">لا توجد منتجات في هذا القسم حالياً</div>'; 
+            else grid.innerHTML = filtered.map(p => generateProductCardHTML(p)).join(''); navigate('filtered-list');
+        }
+
+        function openProductDetailsFull(id) {
+            const p = state.products[id]; if(!p) return; const img = p.images?.[0] || p.image || 'https://via.placeholder.com/300';
+            document.getElementById('pd-img').src = img; document.getElementById('pd-cat').innerText = p.category || p.brand || 'منتجات طبية'; document.getElementById('pd-title').innerText = p.name; document.getElementById('pd-price').innerText = p.price; document.getElementById('pd-old-price').innerText = p.oldPrice ? `${p.oldPrice} ج.م` : '';
+            let desc = p.description || p.desc || 'لا يوجد وصف متاح لهذا المنتج.'; if(p.activeIngredients || p.contains) desc += `\n\nالمواد الفعالة ومكونات التركيبة:\n${p.activeIngredients || p.contains}`;
+            document.getElementById('pd-desc').innerText = desc; document.getElementById('pd-add-btn').onclick = () => { addToCart(id); }; document.getElementById('pd-viewers').innerText = Math.floor(Math.random() * 12) + 4;
+            renderSimilarProducts(p); navigate('product-details');
+        }
+
+        function renderSimilarProducts(currentProduct) {
+            const cont = document.getElementById('similar-products-container'); const all = Object.values(state.products); let similar = all.filter(p => p.id !== currentProduct.id && (p.category === currentProduct.category || p.brand === currentProduct.brand));
+            if(similar.length === 0) similar = all.slice(0, 5); cont.innerHTML = similar.slice(0, 6).map(p => `<div class="w-28 md:w-32 shrink-0 h-full">${generateProductCardHTML(p)}</div>`).join('');
+        }
+
+        function askAboutProductWhatsApp() { const pName = document.getElementById('pd-title').innerText; const storeWhatsapp = (state.settings.whatsapp || '201000000000').replace('+', ''); const msg = encodeURIComponent(`مرحباً صيدلية د. ويلز، أود الاستفسار عن منتج: ${pName} وهل هو مناسب لي؟`); window.open(`https://wa.me/${storeWhatsapp}?text=${msg}`, '_blank'); }
+
+        function buildFullCategoriesPage() {
+            const container = document.getElementById('full-categories-container'); const products = Object.values(state.products); const tree = {};
+            products.forEach(p => { const l1 = p.category ? p.category.trim() : 'عام'; const l2 = p.subcategories ? p.subcategories.trim() : (p.mainCategory ? p.mainCategory.trim() : 'منتجات عامة'); if(!tree[l1]) tree[l1] = new Set(); tree[l1].add(l2); });
+            if(Object.keys(tree).length === 0) { container.innerHTML = '<div class="w-full text-center py-10 text-gray-400 font-bold text-xs">لا تتوفر تصنيفات حالياً</div>'; return; }
+            let sidebarHtml = ''; let contentHtml = ''; let isFirst = true;
+            Object.keys(tree).sort().forEach((cat1, index) => {
+                const safeCatId = 'cat_view_' + index; const activeClass = isFirst ? 'active' : '';
+                sidebarHtml += `<div class="cat-sidebar-item ${activeClass}" id="side_${safeCatId}" onclick="switchCategoryView('${safeCatId}', '${cat1}')">${cat1}</div>`;
+                contentHtml += `<div id="content_${safeCatId}" class="w-full ${isFirst ? '' : 'hidden'} animate-[fadeIn_0.2s_ease]"><div class="cat-content-header">${cat1} <i class="fa-solid fa-layer-group text-primary opacity-50 text-xs"></i></div><div class="grid grid-cols-1 gap-1"><div class="cat-item-card-new !p-2.5 !bg-primary/5 !border-primary/20" onclick="openFilteredView('كل ${cat1}', 'category', '${cat1}')"><i class="fa-solid fa-border-all text-primary text-xs shrink-0 ml-1.5"></i><span class="flex-1 font-black text-gray-900 text-xs">عرض الكل</span><i class="fa-solid fa-arrow-left text-[9px] text-primary bg-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm"></i></div>`;
+                Array.from(tree[cat1]).sort().forEach(subCat => { contentHtml += `<div class="cat-item-card-new !p-2.5" onclick="openFilteredView('${subCat}', 'subcategories', '${subCat}')"><div class="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0 ml-1.5"></div><span class="flex-1 font-bold text-gray-800 leading-tight text-[11px]">${subCat}</span><i class="fa-solid fa-chevron-left text-[9px] text-gray-400 bg-gray-50 w-5 h-5 rounded-full flex items-center justify-center"></i></div>`; });
+                contentHtml += `</div></div>`; isFirst = false;
+            });
+            container.innerHTML = `<div class="w-[35%] md:w-1/3 bg-white border-l border-gray-100 h-full overflow-y-auto hide-scroll flex flex-col shrink-0 z-10 shadow-[1px_0_6px_rgba(0,0,0,0.01)]">${sidebarHtml}</div><div class="w-[65%] md:w-2/3 bg-[#f8f9fa] p-3 h-full overflow-y-auto hide-scroll">${contentHtml}</div>`;
+        }
+
+        window.switchCategoryView = function(catId, catName) { document.querySelectorAll('.cat-sidebar-item').forEach(el => el.classList.remove('active')); document.querySelectorAll('[id^="content_cat_view_"]').forEach(el => el.classList.add('hidden')); document.getElementById(`side_${catId}`).classList.add('active'); document.getElementById(`content_${catId}`).classList.remove('hidden'); };
+
+        // 🚀 SMART LAYOUT ENGINE
+        function renderHomeLayout() {
+            const container = document.getElementById('home-content-wrapper'); const brandsWrapper = document.getElementById('home-brands-wrapper'); const layouts = Object.values(state.homeLayout).sort((a, b) => a.rank - b.rank);
+            state.sliderIntervals.forEach(clearInterval); state.sliderIntervals = [];
+            if (layouts.length === 0) { container.innerHTML = '<div class="text-center py-10 text-gray-400 font-bold text-xs">جاري التحديث...</div>'; brandsWrapper.classList.add('hidden'); return; }
+            let html = ''; let sliderCounter = 0; const slidersToInit = []; let lastTitle = '';
+            const grouped = {}; layouts.forEach(l => { if(!grouped[l.rank]) grouped[l.rank] = []; grouped[l.rank].push(l); });
+
+            Object.keys(grouped).sort((a,b)=>a-b).forEach(rank => {
+                const items = grouped[rank];
+                const rowTitle = items[0]?.title || ''; let titleHTML = '';
+                if (rowTitle && rowTitle !== lastTitle) {
+                    titleHTML = `<div class="flex items-center justify-center mb-2 mt-1 px-4"><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div><h3 class="font-black text-sm text-gray-900 text-center tracking-wide">${rowTitle}</h3><div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div></div></div>`;
+                    lastTitle = rowTitle;
+                } else if (!rowTitle) { lastTitle = ''; }
+                if (titleHTML) html += titleHTML;
+
+                html += `<div class="grid grid-cols-12 w-full gap-0 px-0 mb-3 bg-white">`;
+                items.forEach(item => {
+                    const w = parseInt(item.width) || 12; let spanClass = 'col-span-12';
+                    if (w === 4) spanClass = 'col-span-4'; else if (w === 6) spanClass = 'col-span-6';
+
+                    if (item.type === 'banner') {
+                        const sliderId = `slider-${sliderCounter++}`; slidersToInit.push({ id: sliderId, count: item.items.length });
+                        html += `<div class="${spanClass} relative h-40 md:h-48 overflow-hidden bg-white border-b border-gray-100"><div class="slider-track h-full" id="track-${sliderId}">${item.items.map(i => `<div class="slider-slide cursor-pointer h-full" onclick="handleBannerRedirection('${i.targetType}', '${i.targetValue}', '${item.title}')"><img src="${i.img}" loading="lazy" class="w-full h-full object-cover"></div>`).join('')}</div><div class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-30" id="dots-${sliderId}">${item.items.map((_, idx) => `<div class="w-1.5 h-1.5 rounded-full transition-colors shadow-sm ${idx===0?'bg-primary w-3':'bg-white/80'}"></div>`).join('')}</div></div>`;
+                    } else if (item.type === 'post') {
+                        const postItem = item.items[0]; if(!postItem) return;
+                        html += `<div class="${spanClass} cursor-pointer transform active:scale-95 transition-transform" onclick="handleBannerRedirection('${postItem.targetType}', '${postItem.targetValue}', '${item.title}')"><div class="relative bg-white border-b border-gray-100 overflow-hidden"><img src="${postItem.img}" loading="lazy" class="w-full h-auto object-cover aspect-[4/3] sm:aspect-[16/9]"></div></div>`;
+                    } else if (item.type === 'products') {
+                        const targetItem = item.items[0]; const prodsToRender = getProductsByTarget(targetItem?.targetType, targetItem?.targetValue);
+                        if(prodsToRender.length > 0) { html += `<div class="col-span-12 bg-transparent py-2"><div class="flex gap-2.5 overflow-x-auto hide-scroll px-4 pb-1">${prodsToRender.map(p => `<div class="w-28 md:w-32 shrink-0 h-full">${generateProductCardHTML(p)}</div>`).join('')}</div></div>`; }
+                    }
+                });
+                html += `</div>`;
+            });
+            container.innerHTML = html; slidersToInit.forEach(slider => { startDynamicSlider(slider.id, slider.count); });
+            if(Object.keys(state.brandData).length > 0) brandsWrapper.classList.remove('hidden');
+        }
+
+        function getProductsByTarget(targetType, targetValue) {
+            if(!targetValue) return []; let all = Object.values(state.products); const s = targetValue.toString().trim().toLowerCase();
+            if(targetType === 'category') return all.filter(p => p.category && p.category.toLowerCase() === s);
+            else if(targetType === 'main_category') return all.filter(p => p.mainCategory && p.mainCategory.toLowerCase() === s);
+            else if(targetType === 'sub_category') return all.filter(p => p.subcategories && p.subcategories.toLowerCase() === s);
+            else if(targetType === 'custom_products' || targetType === 'product') { const barcodes = s.split(',').map(c => c.trim().toLowerCase()); return all.filter(p => p.code && barcodes.includes(p.code.toLowerCase()) || p.id && barcodes.includes(p.id.toLowerCase())); }
+            return [];
+        }
+
+        window.handleBannerRedirection = function(targetType, targetValue, title) {
+            if (!targetType || targetType === 'undefined' || !targetValue || targetValue.toString().trim() === '') return;
+            if (targetType === 'product' || targetType === 'custom_products') {
+                const searchVal = targetValue.toString().trim().toLowerCase();
+                if(searchVal.includes(',')) {
+                    openFilteredView(title || 'عروض مميزة', 'custom_products', searchVal);
+                } else {
+                    const allProducts = Object.values(state.products);
+                    const p = allProducts.find(x => (x.id && x.id.toString().toLowerCase() === searchVal) || (x.code && x.code.toString().toLowerCase() === searchVal));
+                    if (p) openProductDetailsFull(p.id);
+                    else showToast("عذراً، هذا المنتج غير متوفر حالياً", "error");
+                }
+            } else {
+                openFilteredView(title || 'عروض مميزة', targetType, targetValue);
+            }
+        };
+
+        function startDynamicSlider(sliderId, slidesCount) {
+            if (slidesCount <= 1) return; let current = 0; const track = document.getElementById(`track-${sliderId}`); const dots = document.getElementById(`dots-${sliderId}`)?.children; if(!track) return;
+            const interval = setInterval(() => { current = (current + 1) % slidesCount; requestAnimationFrame(()=>{ track.style.transform = `translateX(${current * 100}%)`; if(dots) { Array.from(dots).forEach((dot, idx) => { dot.className = idx === current ? 'w-3 h-1.5 rounded-full transition-all bg-primary shadow-sm' : 'w-1.5 h-1.5 rounded-full transition-all bg-white/80 shadow-sm'; }); }}); }, 3500);
+            state.sliderIntervals.push(interval);
+        }
+
+        function renderBrands() {
+            const cont = document.getElementById('brands-container'); 
+            const brandsArr = Object.keys(state.brandData).map(key => ({ name: key, logo: state.brandData[key].logo })).filter(b => b.logo && b.logo.trim() !== "" && !b.logo.includes("placeholder")); 
+            if(brandsArr.length === 0) { cont.innerHTML = '<p class="text-xs text-gray-400 font-bold text-center w-full">لا تتوفر علامات تجارية حالياً</p>'; return; }
+            cont.innerHTML = brandsArr.map(b => `<div class="brand-circle" onclick="openFilteredView('ماركة: ${b.name}', 'brand', '${b.name}')"><img src="${b.logo}" loading="lazy" alt="${b.name}"></div>`).join('');
+        }
+
+        function compressAndGetBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; const MAX_HEIGHT = 800;
+                        let width = img.width; let height = img.height;
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.5));
+                    }
+                    img.src = e.target.result;
+                }
+                reader.onerror = (err) => reject(err);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function processSmartImageAnalysis(event) {
+            const file = event.target.files[0]; if (!file) return;
+            document.getElementById('ai-loading-overlay').classList.remove('hidden'); document.getElementById('ai-status-title').innerText = "جاري تحليل الدواء..."; document.getElementById('ai-status-msg').innerText = "نقوم بقراءة البيانات بالذكاء الاصطناعي...";
+            try {
+                const base64Data = await compressAndGetBase64(file); const rawBase64 = base64Data.split(',')[1]; const mimeType = "image/jpeg";
+                const prompt = "حلل الصورة، استخرج أسماء الأدوية المكتوبة بوضوح بالعربية أو الإنجليزية، مفصولة بفاصلة فقط دون أي شرح.";
+                const responseText = await queryGeminiVisionModel(rawBase64, mimeType, prompt); document.getElementById('ai-loading-overlay').classList.add('hidden');
+                if (responseText && responseText.trim().length > 0) { const cleanResult = responseText.replace(/[*#`]/g, '').trim(); showToast(`تم تحديد الأدوية بنجاح!`, 'success'); document.getElementById('client-search').value = cleanResult; handleClientSearch(); }
+                else { showToast("نصوص غير واضحة، حاول بزاوية أفضل.", "info"); }
+            } catch (error) { console.error(error); document.getElementById('ai-loading-overlay').classList.add('hidden'); showToast("فشل معالجة الذكاء الاصطناعي.", "error"); }
+        }
+
+        async function queryGeminiVisionModel(base64Data, mimeType, promptText) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [ { text: promptText }, { inlineData: { mimeType: mimeType, data: base64Data } } ] }] };
+            let attempts = 3; let delay = 1000;
+            for (let i = 0; i < attempts; i++) { try { const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (response.ok) { const data = await response.json(); return data.candidates?.[0]?.content?.parts?.[0]?.text || ""; } } catch (e) { if (i === attempts - 1) throw e; } await new Promise(res => setTimeout(res, delay)); delay *= 2; }
+            throw new Error("API retries failed.");
+        }
+
+        function switchPrescriptionTab(tab) {
+            state.currentRxTab = tab; const tabNormal = document.getElementById('tab-rx-normal'); const tabInsurance = document.getElementById('tab-rx-insurance'); const infoNormal = document.getElementById('rx-normal-info'); const infoInsurance = document.getElementById('rx-insurance-info');
+            if(tab === 'normal') { tabNormal.className = "flex-1 py-2.5 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all"; tabInsurance.className = "flex-1 py-2.5 rounded-lg font-black text-xs text-gray-500 transition-all"; infoNormal.classList.remove('hidden'); infoInsurance.classList.add('hidden'); }
+            else { tabNormal.className = "flex-1 py-2.5 rounded-lg font-black text-xs text-gray-500 transition-all"; tabInsurance.className = "flex-1 py-2.5 rounded-lg font-black text-xs bg-white shadow-sm text-primary transition-all"; infoNormal.classList.add('hidden'); infoInsurance.classList.remove('hidden'); }
+        }
+
+        // 🚀 الإرسال الفائق للروشتة وحفظها (يدعم صورة واحدة أو عدة صور معاً)
+        async function submitPrescription() {
+            if (!state.currentUser) { showToast("يرجى تسجيل الدخول أولاً.", "info"); showLoginModal(); return; } 
+            
+            if (!state.rxExtractedUrls || state.rxExtractedUrls.length === 0) { 
+                showToast("يرجى إرفاق صورة المستند / الروشتة أولاً.", "error"); 
+                return; 
+            }
+            
+            document.getElementById('ai-loading-overlay').classList.remove('hidden');
+            document.getElementById('ai-status-title').innerText = "جاري إرسال الطلب..."; 
+            document.getElementById('ai-status-msg').innerText = "يتم تأمين وتشفير بياناتك للإرسال...";
+            
+            try {
+                const payload = { 
+                    customerId: state.currentUser.id || "غير معروف", 
+                    customerName: state.currentUser.name || "عميل ويلز",
+                    whatsapp: state.currentUser.whatsapp || state.currentUser.phone || "غير مسجل", 
+                    type: state.currentRxTab || "normal", 
+                    orderType: state.currentRxTab === 'normal' ? 'روشتة عادية' : 'تأمين طبي', 
+                    hasInsurance: state.currentRxTab === 'insurance', 
+                    insuranceCompany: state.currentRxTab === 'insurance' ? document.getElementById('rx-insurance-company').value : null, 
+                    image: state.rxExtractedUrls[0], // نضع أول صورة هنا لدعم التوافقية القديمة
+                    images: state.rxExtractedUrls, // هنا نضع جميع الصور المرفوعة
+                    notes: document.getElementById('rx-notes').value || "لا توجد ملاحظات", 
+                    status: 'بانتظار المراجعة', 
+                    date: new Date().toLocaleDateString('ar-EG'), 
+                    timestamp: Date.now() 
+                };
+                
+                Object.keys(payload).forEach(key => payload[key] === undefined ? delete payload[key] : {});
+
+                await db.ref('prescriptions').push(payload);
+
+                document.getElementById('ai-loading-overlay').classList.add('hidden');
+                showToast("سيتم مراجعة الروشتة في أقرب وقت من قبل الفريق الطبي لصيدليات Dr. Wells", "success");
+                
+                clearImportedRx();
+                document.getElementById('rx-notes').value = ""; 
+                navigate('home', document.querySelectorAll('.nav-item')[3]);
+
+            } catch (err) { 
+                console.error("[Prescription Send Error]:", err);
+                document.getElementById('ai-loading-overlay').classList.add('hidden'); 
+                showToast("حدث خطأ أثناء الإرسال. تأكد من اتصالك بالإنترنت.", "error"); 
+            }
+        }
+
+        function addToCart(id) { const p = state.products[id]; if(!p) return; const existing = state.cart.find(item => item.id === id); if(existing) { existing.quantity += 1; } else { state.cart.push({ id: p.id, name: p.name, price: parseFloat(p.price), image: p.images?.[0] || p.image, quantity: 1, product: p }); } saveLocal(); updateCartBadge(); showToast(`تم إضافة ${p.name} للسلة!`, "success"); }
+        function updateCartBadge() { const badge = document.getElementById('cart-badge'); const totalQty = state.cart.reduce((acc, curr) => acc + curr.quantity, 0); if (totalQty > 0) { badge.innerText = totalQty; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); } }
+        function renderCart() {
+            const container = document.getElementById('cart-items-container'); const totalText = document.getElementById('cart-total-final');
+            if (state.cart.length === 0) { container.innerHTML = `<div class="text-center py-12 bg-white rounded-2xl border border-gray-100 p-4"><i class="fa-solid fa-cart-shopping text-4xl text-gray-300 mb-3"></i><h4 class="font-black text-gray-700 text-xs mb-1">سلتك فارغة</h4></div>`; totalText.innerText = "0"; return; }
+            container.innerHTML = state.cart.map(item => `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-soft flex items-center gap-3"><img src="${item.image || 'https://via.placeholder.com/80'}" class="w-14 h-14 object-contain shrink-0"><div class="flex-1"><h4 class="font-bold text-gray-800 text-[10px] leading-tight line-clamp-1">${item.name}</h4><span class="text-xs font-black text-primary block mt-1">${item.price} ج.م</span></div><div class="flex items-center gap-2.5 bg-gray-50 border border-gray-200 rounded-lg p-1"><button onclick="changeQty('${item.id}', -1)" class="w-5 h-5 bg-white rounded flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-minus text-[9px]"></i></button><span class="font-black text-xs text-gray-800 w-4 text-center">${item.quantity}</span><button onclick="changeQty('${item.id}', 1)" class="w-5 h-5 bg-white rounded flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-plus text-[9px]"></i></button></div></div>`).join('');
+            totalText.innerHTML = `${state.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0).toFixed(2)} <span class="text-xs text-gray-500">ج.م</span>`;
+        }
+        window.changeQty = function(id, diff) { const item = state.cart.find(i => i.id === id); if(item) { item.quantity += diff; if(item.quantity <= 0) state.cart = state.cart.filter(i => i.id !== id); saveLocal(); renderCart(); updateCartBadge(); } };
+        function checkout() {
+            if (!state.currentUser) { showToast("سجل الدخول لإتمام الطلب.", "info"); showLoginModal(); return; } if (state.cart.length === 0) return;
+            const payload = { customerId: state.currentUser.id, customer: { name: state.currentUser.name, whatsapp: state.currentUser.whatsapp, address: state.currentUser.address, gps: state.currentUser.gps || null }, items: state.cart, total: state.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0), status: 'قيد الانتظار', date: new Date().toLocaleDateString('ar-EG'), timestamp: Date.now() };
+            showToast("جاري إرسال الطلب لقائمة مراجعة الصيادلة...", "info"); db.ref('orders').push(payload).then(() => { showToast("تم استلام طلبك وبدأ العمل عليه!", "success"); state.cart = []; saveLocal(); updateCartBadge(); navigate('orders'); }).catch(err => { showToast("فشل الإرسال.", "error"); });
+        }
+
+        function renderClientOrders() {
+            const container = document.getElementById('client-orders-container');
+            if(!state.currentUser) { container.innerHTML = '<p class="text-xs text-gray-400 font-bold text-center py-6">سجل دخولك لعرض طلبياتك.</p>'; return; }
+            const uOrders = Object.values(state.orders).filter(o => o.customerId === state.currentUser.id).sort((a,b)=>b.timestamp - a.timestamp);
+            if(uOrders.length === 0) { container.innerHTML = '<div class="text-center py-10 bg-white border border-gray-100 rounded-xl"><i class="fa-solid fa-clipboard-list text-3xl text-gray-300 mb-2"></i><p class="text-xs text-gray-500 font-bold">لا يوجد لديك أي طلبات مسبقة حالياً</p></div>'; return; }
+            container.innerHTML = uOrders.map(o => {
+                let statusColor = "bg-amber-100 text-amber-700";
+                if(o.status === 'جاري التوصيل' || o.status === 'مع المندوب') statusColor = "bg-blue-100 text-blue-700";
+                else if(o.status === 'تم التوصيل' || o.status === 'مكتمل') statusColor = "bg-green-100 text-green-700";
+                else if(o.status === 'ملغي') statusColor = "bg-red-100 text-red-700";
+                return `<div class="bg-white p-4 rounded-xl border border-gray-100 shadow-soft"><div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-50"><span class="text-[10px] font-bold text-gray-400">${o.date}</span><span class="px-2.5 py-0.5 rounded-full text-[9px] font-black ${statusColor}">${o.status}</span></div><div class="space-y-1 mb-2 text-right">${o.items ? o.items.map(i => `<p class="text-xs font-bold text-gray-800 flex justify-between"><span>${i.name}</span><span class="text-gray-400">(${i.quantity} قطع)</span></p>`).join('') : '<p class="text-xs text-gray-500">مراجعة من خلال الروشتة المرفقة</p>'}</div><div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-50"><span class="text-xs font-bold text-gray-600">القيمة الإجمالية:</span><span class="text-sm font-black text-primary">${o.total ? o.total + ' ج.م' : 'محدد عند المراجعة'}</span></div></div>`;
+            }).join('');
+        }
+
+        function renderGenderSpecificContent() {
+            const container = document.getElementById('mommies-container');
+            const userGender = state.currentUser ? state.currentUser.gender : 'female';
+            
+            const items = Object.values(state.momsData).filter(m => m.gender === userGender || m.gender === 'all' || !m.gender);
+
+            let headerHTML = userGender === 'female' ? 
+                `<div class="bg-pink-50 border border-pink-100 p-4 rounded-2xl mb-4 text-center"><i class="fa-solid fa-baby-carriage text-pink-500 text-3xl mb-2 animate-bounce"></i><h3 class="font-black text-pink-800 text-sm">صحة المرأة والطفل</h3><p class="text-[10px] font-bold text-pink-600 mt-1">معلومات ونصائح حصرية لكِ ولعائلتك</p></div>` :
+                `<div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-4 text-center"><i class="fa-solid fa-dumbbell text-blue-500 text-3xl mb-2 animate-bounce"></i><h3 class="font-black text-blue-800 text-sm">صحة الرجال والعناية الفائقة</h3><p class="text-[10px] font-bold text-blue-600 mt-1">أهم المقالات للمحافظة على نشاطك اليومي</p></div>`;
+
+            if(items.length === 0) {
+                container.innerHTML = headerHTML + '<div class="text-center py-8"><p class="text-xs text-gray-400 font-bold">لا تتوفر مقالات مخصصة حالياً.</p></div>';
+                return;
+            }
+
+            const cardsHTML = items.map(item => `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4 overflow-hidden cursor-pointer active:scale-[0.98] transition-transform" onclick="handleBannerRedirection('${item.linkType}', '${item.linkValue}', '${item.title}')">
+                    ${item.media && item.media.trim() !== '' ? `<img src="${item.media}" class="w-full h-40 object-cover" loading="lazy" onerror="this.remove()">` : ''}
+                    <div class="p-4">
+                        ${item.warning && item.warning.trim() !== '' ? `<span class="bg-red-50 text-red-500 text-[9px] font-black px-2 py-1 rounded mb-2 inline-block">${item.warning}</span>` : ''}
+                        <h3 class="font-black text-sm text-gray-900 mb-1">${item.title || 'معلومات هامة'}</h3>
+                        <p class="text-[11px] text-gray-600 font-bold leading-relaxed">${item.desc || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = headerHTML + `<div class="space-y-3">` + cardsHTML + `</div>`;
+        }
+
+        function renderMagazinePage() {
+            const container = document.getElementById('magazine-container');
+            const articles = Object.values(state.magazine).sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            if(articles.length === 0) {
+                container.innerHTML = '<div class="text-center py-12"><i class="fa-solid fa-book-open text-4xl text-gray-200 mb-3"></i><p class="text-xs text-gray-500 font-bold">لا توجد أعداد من المجلة حالياً.</p></div>';
+                return;
+            }
+
+            container.innerHTML = articles.map(a => `
+                <div class="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
+                    <div class="p-3 bg-gray-50 flex justify-between items-center border-b border-gray-100">
+                        <h3 class="font-black text-gray-900 text-xs">${a.title || 'إصدار المجلة'}</h3>
+                        <span class="text-[10px] text-gray-400 font-bold bg-white px-2 py-1 rounded-full border border-gray-200">${a.date || ''}</span>
+                    </div>
+                    ${a.url ? `<img src="${a.url}" class="w-full h-auto object-cover" loading="lazy">` : '<div class="p-4 text-center text-xs text-gray-400 font-bold">الصورة غير متوفرة</div>'}
+                </div>
+            `).join('');
+        }
+
+        function openTermsModal() {
+            const initialTerms = `<p class="text-xs text-gray-400 font-bold text-center py-4">جاري استيراد وثيقة الشروط والاتفاقيات...</p>`;
+            showModal("شروط الخدمة والخصوصية", `<div id="terms-content-placeholder">${initialTerms}</div>`);
+            db.ref('settings/termsOfService').once('value', snapshot => {
+                const terms = snapshot.val(); const container = document.getElementById('terms-content-placeholder');
+                if (container) { container.innerHTML = `<div class="text-right space-y-3 leading-relaxed text-xs"><p class="font-semibold text-gray-700">${terms || 'مرحباً بكم في تطبيق صيدليات Dr. Wells. يلتزم تطبيقنا بالحفاظ على خصوصيتكم وتوفير أسرع تجربة لرفع وتجهيز الروشتات الطبية مع ضمان تسليم الأدوية والتعاقدات بكل أمان ودقة متبعة لقوانين وزارة الصحة المصرية.'}</p></div>`; }
+            });
+        }
+
+        // ONBOARDING
+        function startOnboardingTour() { const hasSeen = localStorage.getItem('drwells_onboarding_completed'); if (hasSeen) return; onboardingStep = 0; document.getElementById('onboarding-guide-container').classList.remove('hidden'); positionOnboardingCard(); }
+        function positionOnboardingCard() {
+            const step = onboardingSteps[onboardingStep]; const elem = document.getElementById(step.elementId); const card = document.getElementById('onboarding-card'); const arrow = document.getElementById('onboarding-arrow');
+            document.getElementById('onboarding-title').innerText = step.title; document.getElementById('onboarding-desc').innerText = step.desc;
+            if(onboardingStep === onboardingSteps.length - 1) document.getElementById('onboarding-next-btn').innerHTML = `ابدأ الآن <i class="fa-solid fa-check ml-1"></i>`; else document.getElementById('onboarding-next-btn').innerHTML = `التالي <i class="fa-solid fa-chevron-left mr-1"></i>`;
+            arrow.className = `onboarding-arrow ${step.arrowPos}`;
+            if(elem) { elem.scrollIntoView({ behavior: 'smooth', block: 'center' }); elem.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'z-[9999999]'); }
+        }
+        function nextOnboardingStep() {
+            const prevStep = onboardingSteps[onboardingStep]; const prevElem = document.getElementById(prevStep.elementId);
+            if(prevElem) prevElem.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'z-[9999999]');
+            onboardingStep++; if(onboardingStep >= onboardingSteps.length) skipOnboarding(); else positionOnboardingCard();
+        }
+        function skipOnboarding() { document.getElementById('onboarding-guide-container').classList.add('hidden'); onboardingSteps.forEach(step => { const el = document.getElementById(step.elementId); if(el) el.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'z-[9999999]'); }); localStorage.setItem('drwells_onboarding_completed', 'true'); showToast("أتمنى لك رحلة طبية موفقة وسريعة معنا!", "success"); }
+
+        function toggleAuthMode(isReg) { document.getElementById('login-form').classList.toggle('hidden', isReg); document.getElementById('register-form').classList.toggle('hidden', !isReg); document.getElementById('auth-title').innerText = isReg ? "إنشاء حساب" : "تسجيل الدخول"; }
+        function showLoginModal() { document.getElementById('auth-modal').classList.remove('hidden'); toggleAuthMode(false); }
+        function getCurrentGPSLocation() { const btnText = document.getElementById('gps-btn-text'); if (navigator.geolocation) { btnText.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> جاري التحديد...`; navigator.geolocation.getCurrentPosition( (pos) => { document.getElementById('reg-lat').value = pos.coords.latitude; document.getElementById('reg-lng').value = pos.coords.longitude; btnText.innerHTML = `<i class="fa-solid fa-circle-check text-green-500"></i> تم التحديد`; }, (err) => { btnText.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500"></i> فشل`; }); } }
+        async function handleRegister(e) {
+            e.preventDefault(); const phone = document.getElementById('reg-phone').value.trim(); if (phone.length < 11) return showToast("رقم هاتف غير صحيح", "error");
+            const newCustomerId = 'cust_' + Date.now();
+            const customerData = { id: newCustomerId, name: document.getElementById('reg-name').value.trim(), phone: phone, whatsapp: document.getElementById('reg-whatsapp').value.trim() || phone, address: `${document.getElementById('reg-governorate').value}، ${document.getElementById('reg-city').value}، ${document.getElementById('reg-district').value}، ${document.getElementById('reg-street').value}`, gps: (document.getElementById('reg-lat').value && document.getElementById('reg-lng').value) ? { latitude: document.getElementById('reg-lat').value, longitude: document.getElementById('reg-lng').value } : null, password: document.getElementById('reg-password').value, gender: document.getElementById('reg-gender').value, points: 10, joinedAt: Date.now() };
+            await db.ref(`customers/${newCustomerId}`).set(customerData); state.currentUser = customerData; saveLocal(); updateProfileUI(); showToast("تم إنشاء الحساب بنجاح!", "success"); document.getElementById('auth-modal').classList.add('hidden'); navigate('account');
+        }
+        async function handleLogin(e) {
+            e.preventDefault(); const loginPhone = document.getElementById('login-id').value.trim(); const loginPass = document.getElementById('login-password').value; showToast("جاري التحقق...", "info");
+            const snapshot = await db.ref('customers').once('value'); const customers = snapshot.val() || {}; const matchedUser = Object.values(customers).find(c => (c.whatsapp === loginPhone || c.phone === loginPhone) && c.password === loginPass);
+            if (matchedUser) { state.currentUser = matchedUser; saveLocal(); updateProfileUI(); showToast(`أهلاً ${matchedUser.name}!`, "success"); document.getElementById('auth-modal').classList.add('hidden'); navigate('home'); } else { showToast("بيانات غير صحيحة", "error"); }
+        }
+        function logout() { state.currentUser = null; saveLocal(); updateProfileUI(); navigate('home'); }
+
+        function updateProfileUI() {
+            const auth = document.getElementById('auth-profile'); const loginMenu = document.getElementById('login-menu-item'); const ordersMenu = document.getElementById('orders-menu-item'); const logoutMenu = document.getElementById('logout-menu-item');
+            if(state.currentUser) { auth.classList.remove('hidden'); document.getElementById('prof-display-name').innerText = state.currentUser.name; document.getElementById('prof-display-phone').innerText = state.currentUser.phone; document.getElementById('prof-display-address').innerText = state.currentUser.address; document.getElementById('user-points').innerHTML = `${state.currentUser.points || 0} <span class="text-xs font-normal text-gray-400">نقطة</span>`; loginMenu.classList.add('hidden'); ordersMenu.classList.remove('hidden'); logoutMenu.classList.remove('hidden'); }
+            else { auth.classList.add('hidden'); loginMenu.classList.remove('hidden'); ordersMenu.classList.add('hidden'); logoutMenu.classList.add('hidden'); }
+        }
+
+        // 🚀 Init Listeners
+        function initAppData() {
+            db.ref('products').on('value', snap => { state.products = snap.val() || {}; if(state.clientSearchTerm === '') renderHomeLayout(); });
+            db.ref('homeLayout').on('value', snap => { state.homeLayout = snap.val() || {}; renderHomeLayout(); });
+            db.ref('brandData').on('value', snap => { state.brandData = snap.val() || {}; renderBrands(); });
+            db.ref('customers').on('value', snap => { state.customers = snap.val() || {}; updateProfileUI(); });
+            db.ref('orders').on('value', snap => { state.orders = snap.val() || {}; renderClientOrders(); });
+            
+            db.ref('moms').on('value', snap => { state.momsData = snap.val() || {}; if(state.navHistory[state.navHistory.length-1] === 'mommies') renderGenderSpecificContent(); });
+            db.ref('magazine').on('value', snap => { state.magazine = snap.val() || {}; if(state.navHistory[state.navHistory.length-1] === 'magazine') renderMagazinePage(); });
+            
+            db.ref('settings').on('value', snap => {
+                state.settings = snap.val() || { name: 'Dr. Wells Pharmacy', whatsapp: '+201000000000' };
+                if(state.settings.logo) { document.getElementById('header-store-logo').src = state.settings.logo; document.getElementById('auth-modal-logo').src = state.settings.logo; }
+                const nameParts = (state.settings.name || 'Dr. Wells Pharmacy').split(' ');
+                document.getElementById('header-store-name').innerHTML = nameParts.length > 1 ? `<span class="text-[#1a1a1a]">${nameParts.shift()}</span> <span class="text-primary">${nameParts.join(' ')}</span>` : `<span class="text-[#1a1a1a]">${nameParts[0]}</span>`;
+                
+                setTimeout(() => { const preloader = document.getElementById('app-initial-preloader'); if (preloader) { preloader.classList.add('opacity-0'); setTimeout(() => { preloader.remove(); startOnboardingTour(); }, 700); } }, 1200);
+            });
+            
+            updateCartBadge(); updateProfileUI(); navigate('home', document.querySelectorAll('.nav-item')[3]);
+        }
+    </script>
+</body>
+</html>
