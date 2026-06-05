@@ -79,6 +79,15 @@
             }
         }
     </script>
+            <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "f11c22f6-3728-4eee-a7dd-9aa5bf270593",
+    });
+  });
+</script>
     <style>
         /* 🚀 WebView & Mobile Specific CSS Optimizations */
         * { -webkit-tap-highlight-color: transparent; outline: none; }
@@ -1920,6 +1929,8 @@
             
             updateCartBadge(); updateProfileUI(); navigate('home', document.querySelectorAll('.nav-item')[3]);
         }
+
+
     </script>
 </body>
 </html>
