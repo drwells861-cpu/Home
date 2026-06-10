@@ -25,11 +25,11 @@
     <!-- 🔔 OneSignal SDK Integration -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
-      window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function() {
-        OneSignal.init({
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
           appId: "f11c22f6-3728-4eee-a7dd-9aa5bf270593",
-          safari_web_id: "YOUR_SAFARI_WEB_ID",
+          // safari_web_id: "YOUR_SAFARI_WEB_ID", // يفضل حذفه أو تهميشه إذا لم تكن تستهدف سفاري بشكل مخصص
           notifyButton: {
             enable: true,
             position: 'bottom-right',
@@ -38,17 +38,17 @@
           },
           allowLocalhostAsSecureOrigin: true,
           promptOptions: {
-              slidedown: {
-                  prompts: [{
-                      type: "push",
-                      autoPrompt: true,
-                      text: {
-                          actionMessage: "نريد إرسال إشعارات بحالة طلباتك وعروضنا الجديدة.",
-                          acceptButton: "تفعيل",
-                          cancelButton: "لاحقاً"
-                      }
-                  }]
-              }
+            slidedown: {
+              prompts: [{
+                type: "push",
+                autoPrompt: true,
+                text: {
+                  actionMessage: "نريد إرسال إشعارات بحالة طلباتك وعروضنا الجديدة.",
+                  acceptButton: "تفعيل",
+                  cancelButton: "لاحقاً"
+                }
+              }]
+            }
           }
         });
       });
